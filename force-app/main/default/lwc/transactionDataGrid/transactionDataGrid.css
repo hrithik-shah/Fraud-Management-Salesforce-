@@ -1,0 +1,109 @@
+/* Container Styling */
+.dribbble-card {
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    border: 1px solid #f3f3f3;
+    overflow: hidden;
+    font-family: 'Salesforce Sans', system-ui, sans-serif;
+}
+
+/* Header Styling */
+.header-section {
+    border-bottom: 1px solid #f3f3f3;
+    background-color: #fafbfc;
+}
+
+.header-section h2 {
+    font-size: 1.25rem;
+    color: #1b1b1b;
+}
+
+/* Override standard button corners for a modern feel */
+.action-buttons lightning-button {
+    --sds-c-button-radius-border: 8px;
+}
+
+/* Filter Panel Styling */
+.filter-panel {
+    background-color: #fafbfc;
+}
+
+.filter-panel lightning-input,
+.filter-panel lightning-combobox {
+    --sds-c-input-radius-border: 6px;
+}
+
+/* Multi-Sort Pill Area */
+.sort-combo {
+    width: 200px;
+}
+
+.active-sorts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-left: 1rem;
+}
+
+.active-sorts lightning-pill {
+    --sds-c-pill-color-background: #ffffff;
+    --sds-c-pill-radius-border: 6px;
+    border: 1px solid #e5e5e5;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+}
+
+/* Table Styling Overrides */
+.table-container {
+    border-top: 1px solid #f3f3f3;
+    border-bottom: 1px solid #f3f3f3;
+}
+
+/* Targets internal shadow DOM of lightning-datatable to soften the lines */
+.table-container lightning-datatable {
+    --lwc-tableColorBackgroundHeader: #ffffff;
+    --lwc-colorBorder: #f3f3f3;
+    --lwc-spacingXSmall: 0.75rem; 
+}
+
+/* Footer Pagination */
+.footer-section {
+    background-color: #ffffff;
+    color: #5f6368;
+}
+
+.page-size-selector {
+    width: 70px;
+    --sds-c-input-radius-border: 6px;
+}
+
+/* Modal Status Badges (Pills) */
+.badge {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    display: inline-block;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.badge-approved { 
+    background-color: #e5f6eb; 
+    color: #0ba959; 
+}
+
+.badge-pending { 
+    background-color: #e5f2fb; 
+    color: #0070d2; 
+}
+
+.badge-fraudulent { 
+    background-color: #fce5e8; 
+    color: #ea001e; 
+}
+
+.badge-cancelled { 
+    background-color: #f3f3f3; 
+    color: #747474; 
+}

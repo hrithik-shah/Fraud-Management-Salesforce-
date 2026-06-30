@@ -3,7 +3,7 @@ public with sharing class PartnerTransactionController {
     @AuraEnabled(cacheable=true)
     public static List<Transaction__c> getPendingTransactions() {
         return [
-            SELECT Id, Name, Transaction_ID__c, Amount__c, Transaction_Date__c, Status__c, Product_Code__c, Store_Location__c
+            SELECT Id, Name, Transaction_ID__c, Amount__c, Transaction_Date__c, Status__c, Product_Code__c, Store_Location__c, Card__r.Masked_Card_Number__c
             FROM Transaction__c
             WHERE Status__c = 'Pending'
             ORDER BY Transaction_Date__c ASC

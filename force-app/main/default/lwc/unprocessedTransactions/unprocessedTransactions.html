@@ -1,11 +1,179 @@
 <template>
     <lightning-card title="Unprocessed Transactions" icon-name="standard:record">
+        
         <div slot="actions">
             <lightning-button-group>
                 <lightning-button label="Approve Selected" variant="success" onclick={handleBulkApprove} disabled={isBulkDisabled}></lightning-button>
                 <lightning-button label="Cancel Selected" onclick={handleBulkCancel} disabled={isBulkDisabled}></lightning-button>
                 <lightning-button label="Mark Fraud Selected" variant="destructive" onclick={handleBulkFraud} disabled={isBulkDisabled}></lightning-button>
             </lightning-button-group>
+        </div>
+
+        <div class="slds-grid slds-wrap slds-p-around_medium">
+            
+            <div class="slds-col slds-size_1-of-4 slds-p-horizontal_x-small slds-m-bottom_small">
+                <div class="slds-form-element">
+                    <label class="slds-form-element__label">Transaction ID</label>
+                    <div class="slds-form-element__control">
+                        <div class="slds-combobox_container">
+                            <div class={txnIdComboboxClass}>
+                                <div class="slds-combobox__form-element slds-input-has-icon slds-input-has-icon_right">
+                                    <input type="text" class="slds-input slds-combobox__input" name="txnId"
+                                        placeholder="Select ID..." value={filters.txnId}
+                                        oninput={handleSearch} onclick={openDropdown} onblur={closeDropdown} autocomplete="off" />
+                                    
+                                    <template if:false={filters.txnId}>
+                                        <lightning-icon icon-name="utility:down" size="x-small" class="slds-input__icon slds-input__icon_right"></lightning-icon>
+                                    </template>
+                                    <template if:true={filters.txnId}>
+                                        <button class="slds-button slds-button_icon slds-input__icon slds-input__icon_right" name="txnId" onclick={clearSelection} title="Clear">
+                                            <lightning-icon icon-name="utility:clear" size="x-small" class="slds-button__icon"></lightning-icon>
+                                        </button>
+                                    </template>
+                                </div>
+                                <div class="slds-dropdown slds-dropdown_fluid">
+                                    <ul class="slds-listbox slds-listbox_vertical">
+                                        <template for:each={txnIdOptions} for:item="option">
+                                            <li key={option} class="slds-listbox__item" onmousedown={handleSelection} data-name="txnId" data-value={option}>
+                                                <div class="slds-media slds-listbox__option slds-listbox__option_plain slds-media_small">
+                                                    <span class="slds-media__body"><span class="slds-truncate">{option}</span></span>
+                                                </div>
+                                            </li>
+                                        </template>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="slds-col slds-size_1-of-4 slds-p-horizontal_x-small slds-m-bottom_small">
+                <div class="slds-form-element">
+                    <label class="slds-form-element__label">Product Code</label>
+                    <div class="slds-form-element__control">
+                        <div class="slds-combobox_container">
+                            <div class={productComboboxClass}>
+                                <div class="slds-combobox__form-element slds-input-has-icon slds-input-has-icon_right">
+                                    <input type="text" class="slds-input slds-combobox__input" name="product"
+                                        placeholder="Select Product..." value={filters.product}
+                                        oninput={handleSearch} onclick={openDropdown} onblur={closeDropdown} autocomplete="off" />
+                                    
+                                    <template if:false={filters.product}>
+                                        <lightning-icon icon-name="utility:down" size="x-small" class="slds-input__icon slds-input__icon_right"></lightning-icon>
+                                    </template>
+                                    <template if:true={filters.product}>
+                                        <button class="slds-button slds-button_icon slds-input__icon slds-input__icon_right" name="product" onclick={clearSelection} title="Clear">
+                                            <lightning-icon icon-name="utility:clear" size="x-small" class="slds-button__icon"></lightning-icon>
+                                        </button>
+                                    </template>
+                                </div>
+                                <div class="slds-dropdown slds-dropdown_fluid">
+                                    <ul class="slds-listbox slds-listbox_vertical">
+                                        <template for:each={productOptions} for:item="option">
+                                            <li key={option} class="slds-listbox__item" onmousedown={handleSelection} data-name="product" data-value={option}>
+                                                <div class="slds-media slds-listbox__option slds-listbox__option_plain slds-media_small">
+                                                    <span class="slds-media__body"><span class="slds-truncate">{option}</span></span>
+                                                </div>
+                                            </li>
+                                        </template>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="slds-col slds-size_1-of-4 slds-p-horizontal_x-small slds-m-bottom_small">
+                <div class="slds-form-element">
+                    <label class="slds-form-element__label">Store Location</label>
+                    <div class="slds-form-element__control">
+                        <div class="slds-combobox_container">
+                            <div class={storeComboboxClass}>
+                                <div class="slds-combobox__form-element slds-input-has-icon slds-input-has-icon_right">
+                                    <input type="text" class="slds-input slds-combobox__input" name="store"
+                                        placeholder="Select Store..." value={filters.store}
+                                        oninput={handleSearch} onclick={openDropdown} onblur={closeDropdown} autocomplete="off" />
+                                    
+                                    <template if:false={filters.store}>
+                                        <lightning-icon icon-name="utility:down" size="x-small" class="slds-input__icon slds-input__icon_right"></lightning-icon>
+                                    </template>
+                                    <template if:true={filters.store}>
+                                        <button class="slds-button slds-button_icon slds-input__icon slds-input__icon_right" name="store" onclick={clearSelection} title="Clear">
+                                            <lightning-icon icon-name="utility:clear" size="x-small" class="slds-button__icon"></lightning-icon>
+                                        </button>
+                                    </template>
+                                </div>
+                                <div class="slds-dropdown slds-dropdown_fluid">
+                                    <ul class="slds-listbox slds-listbox_vertical">
+                                        <template for:each={storeOptions} for:item="option">
+                                            <li key={option} class="slds-listbox__item" onmousedown={handleSelection} data-name="store" data-value={option}>
+                                                <div class="slds-media slds-listbox__option slds-listbox__option_plain slds-media_small">
+                                                    <span class="slds-media__body"><span class="slds-truncate">{option}</span></span>
+                                                </div>
+                                            </li>
+                                        </template>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="slds-col slds-size_1-of-4 slds-p-horizontal_x-small slds-m-bottom_small">
+                <div class="slds-form-element">
+                    <label class="slds-form-element__label">Masked Card</label>
+                    <div class="slds-form-element__control">
+                        <div class="slds-combobox_container">
+                            <div class={maskedComboboxClass}>
+                                <div class="slds-combobox__form-element slds-input-has-icon slds-input-has-icon_right">
+                                    <input type="text" class="slds-input slds-combobox__input" name="masked"
+                                        placeholder="Select Card..." value={filters.masked}
+                                        oninput={handleSearch} onclick={openDropdown} onblur={closeDropdown} autocomplete="off" />
+                                    
+                                    <template if:false={filters.masked}>
+                                        <lightning-icon icon-name="utility:down" size="x-small" class="slds-input__icon slds-input__icon_right"></lightning-icon>
+                                    </template>
+                                    <template if:true={filters.masked}>
+                                        <button class="slds-button slds-button_icon slds-input__icon slds-input__icon_right" name="masked" onclick={clearSelection} title="Clear">
+                                            <lightning-icon icon-name="utility:clear" size="x-small" class="slds-button__icon"></lightning-icon>
+                                        </button>
+                                    </template>
+                                </div>
+                                <div class="slds-dropdown slds-dropdown_fluid">
+                                    <ul class="slds-listbox slds-listbox_vertical">
+                                        <template for:each={maskedOptions} for:item="option">
+                                            <li key={option} class="slds-listbox__item" onmousedown={handleSelection} data-name="masked" data-value={option}>
+                                                <div class="slds-media slds-listbox__option slds-listbox__option_plain slds-media_small">
+                                                    <span class="slds-media__body"><span class="slds-truncate">{option}</span></span>
+                                                </div>
+                                            </li>
+                                        </template>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <lightning-input type="number" name="minAmt" label="Min Amount" value={filters.minAmt} onchange={handleFilterChange} class="slds-col slds-size_1-of-5 slds-p-horizontal_x-small slds-m-bottom_small"></lightning-input>
+            <lightning-input type="number" name="maxAmt" label="Max Amount" value={filters.maxAmt} onchange={handleFilterChange} class="slds-col slds-size_1-of-5 slds-p-horizontal_x-small slds-m-bottom_small"></lightning-input>
+            
+            <lightning-input type="date" name="dateFrom" label="From Date" value={filters.dateFrom} onchange={handleFilterChange} class="slds-col slds-size_1-of-5 slds-p-horizontal_x-small slds-m-bottom_small"></lightning-input>
+            <lightning-input type="date" name="dateTo" label="To Date" value={filters.dateTo} onchange={handleFilterChange} class="slds-col slds-size_1-of-5 slds-p-horizontal_x-small slds-m-bottom_small"></lightning-input>
+
+            <div class="slds-col slds-size_1-of-5 slds-p-horizontal_x-small slds-m-bottom_small">
+                <div class="slds-form-element">
+                    <label class="slds-form-element__label">&nbsp;</label>
+                    <div class="slds-form-element__control">
+                        <lightning-button label="Clear All Filters" onclick={handleClearAll} variant="base"></lightning-button>
+                    </div>
+                </div>
+            </div>
+
         </div>
 
         <div class="slds-m-around_medium">
