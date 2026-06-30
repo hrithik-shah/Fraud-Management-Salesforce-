@@ -42,27 +42,30 @@ export default class TransactionDataGrid extends LightningElement {
     wiredTransactionResult;
     subscription = null;
 
+    // Popover States
     @track isFilterPopupOpen = false;
-    @track openDropdownName = ''; // Tracks which custom multi-select is expanded
+    @track isSortPopupOpen = false;
+    @track openDropdownName = ''; 
     
-    // Active Filters
+    // Sort States
+    @track activeSorts = []; 
+    @track draftSorts = [];
+
+    // Filter States
     @track filters = { 
-        Status__c: [], Transaction_ID__c: [], Product_Code__c: [], 
-        Customer_ID__c: [], Store_Location__c: [], 
-        minAmount: null, maxAmount: null, minDate: null, maxDate: null 
+        Status__c: ['Pending'], 
+        Transaction_ID__c: [], 
+        Product_Code__c: [], 
+        Customer_ID__c: [], 
+        Store_Location__c: [], 
+        minAmount: null, maxAmount: null, 
+        minDate: null, maxDate: null 
     }; 
     @track draftFilters = { ...this.filters };
-
-    // Holds the text actively being typed into the dropdown search box
     @track dropdownSearchTerms = { Status__c: '', Transaction_ID__c: '', Product_Code__c: '', Customer_ID__c: '', Store_Location__c: '' };
 
-    // Raw Unique Options Extracted from Data
-    allTxnIdOptions = []; 
-    allProductOptions = []; 
-    allCustomerOptions = [];
-    allStoreOptions = [];
+    allTxnIdOptions = []; allProductOptions = []; allCustomerOptions = []; allStoreOptions = [];
 
-    @track activeSorts = []; 
     currentPage = 1; pageSize = 10;
     isModalOpen = false; @track selectedRecord = null;
 
@@ -74,11 +77,13 @@ export default class TransactionDataGrid extends LightningElement {
     get totalPages() { return Math.ceil(this.filteredData.length / this.pageSize) || 1; }
     get isFirstPage() { return this.currentPage === 1; }
     get isLastPage() { return this.currentPage >= this.totalPages; }
-    
-    get filterButtonClass() { return this.isFilterPopupOpen || this.activeFilterTags.length > 0 ? 'dribbble-btn active-btn' : 'dribbble-btn'; }
-    get hasActiveFiltersOrSorts() { return this.activeFilterTags.length > 0 || this.activeSorts.length > 0; }
     get pageSizeOptions() { return [{ label: '10', value: '10' }, { label: '25', value: '25' }, { label: '50', value: '50' }, { label: '100', value: '100' }]; }
     get sortableColumns() { return this.columns.filter(c => c.fieldName && !c.fieldName.includes('statusTableClass')).map(c => ({ label: c.label, value: c.fieldName })); }
+
+    get filterButtonClass() { return this.isFilterPopupOpen || this.activeFilterTags.length > 0 ? 'dribbble-btn active-btn' : 'dribbble-btn'; }
+    get sortButtonClass() { return this.isSortPopupOpen || this.activeSorts.length > 0 ? 'dribbble-btn active-btn' : 'dribbble-btn'; }
+    get hasActiveFiltersOrSorts() { return this.activeFilterTags.length > 0 || this.activeSorts.length > 0; }
+    get hasDraftSorts() { return this.draftSorts.length > 0; }
 
     // --- Custom Multi-Select Dropdown Getters ---
     get statusDropdownClass() { return `slds-combobox slds-dropdown-trigger slds-dropdown-trigger_click ${this.openDropdownName === 'Status__c' ? 'slds-is-open' : ''}`; }
@@ -87,7 +92,6 @@ export default class TransactionDataGrid extends LightningElement {
     get customerDropdownClass() { return `slds-combobox slds-dropdown-trigger slds-dropdown-trigger_click ${this.openDropdownName === 'Customer_ID__c' ? 'slds-is-open' : ''}`; }
     get storeDropdownClass() { return `slds-combobox slds-dropdown-trigger slds-dropdown-trigger_click ${this.openDropdownName === 'Store_Location__c' ? 'slds-is-open' : ''}`; }
 
-    // --- Dynamic Input Display Text (Search Term when open, Summary when closed) ---
     get statusInputValue() { return this.openDropdownName === 'Status__c' ? this.dropdownSearchTerms.Status__c : this.getDisplayText('Status__c'); }
     get txnIdInputValue() { return this.openDropdownName === 'Transaction_ID__c' ? this.dropdownSearchTerms.Transaction_ID__c : this.getDisplayText('Transaction_ID__c'); }
     get productInputValue() { return this.openDropdownName === 'Product_Code__c' ? this.dropdownSearchTerms.Product_Code__c : this.getDisplayText('Product_Code__c'); }
@@ -101,17 +105,10 @@ export default class TransactionDataGrid extends LightningElement {
         return `${arr.length} selected`;
     }
 
-    // --- Dynamically Filtered & Mapped Options ---
     filterAndMapOptions(optionsArray, fieldName) {
         let opts = optionsArray;
         const term = (this.dropdownSearchTerms[fieldName] || '').toLowerCase();
-        
-        if (term) {
-            // Check label property if it's an object array (like Status), otherwise check string directly
-            opts = opts.filter(o => (o.label ? o.label.toLowerCase() : o.toLowerCase()).includes(term));
-        }
-        
-        // Map to standard { label, value, isChecked } object
+        if (term) opts = opts.filter(o => (o.label ? o.label.toLowerCase() : o.toLowerCase()).includes(term));
         return opts.map(opt => {
             const val = opt.value || opt;
             const lbl = opt.label || opt;
@@ -128,11 +125,10 @@ export default class TransactionDataGrid extends LightningElement {
     get customerOptionsMapped() { return this.filterAndMapOptions(this.allCustomerOptions, 'Customer_ID__c'); }
     get storeOptionsMapped() { return this.filterAndMapOptions(this.allStoreOptions, 'Store_Location__c'); }
 
-    // --- Dynamic Tags with Smart Truncation ---
+    // --- Dynamic Tags ---
     get activeFilterTags() {
         let tags = [];
         const f = this.filters;
-        
         const formatLabel = (prefix, arr) => arr.length > 2 ? `${prefix}: ${arr.length} selected` : `${prefix}: ${arr.join(', ')}`;
 
         if (f.Transaction_ID__c && f.Transaction_ID__c.length > 0) tags.push({ name: 'Transaction_ID__c', label: formatLabel('ID', f.Transaction_ID__c) });
@@ -191,24 +187,95 @@ export default class TransactionDataGrid extends LightningElement {
         this.allStoreOptions = Array.from(stores).sort();
     }
 
-    // --- Popover UI & Custom Dropdown Controls ---
+    // --- SORT POPOVER LOGIC ---
+    toggleSortPopup() {
+        this.isSortPopupOpen = !this.isSortPopupOpen;
+        if (this.isSortPopupOpen) {
+            this.isFilterPopupOpen = false;
+            this.draftSorts = this.activeSorts.map(s => ({...s}));
+            if (this.draftSorts.length === 0) {
+                this.handleAddDraftSort(); 
+            } else {
+                this.updateSortLabels();
+            }
+        }
+    }
+
+    handleAddDraftSort() {
+        this.draftSorts.push({
+            id: Date.now() + Math.random(), 
+            fieldName: '',
+            label: '',
+            direction: 'asc',
+            icon: 'utility:arrowup',
+            prefixLabel: ''
+        });
+        this.updateSortLabels();
+    }
+
+    updateSortLabels() {
+        this.draftSorts.forEach((sort, index) => {
+            sort.prefixLabel = index === 0 ? 'Sort by' : 'Then by';
+        });
+        this.draftSorts = [...this.draftSorts];
+    }
+
+    handleDraftSortFieldChange(event) {
+        const index = event.target.dataset.index;
+        const val = event.detail.value;
+        this.draftSorts[index].fieldName = val;
+        const column = this.columns.find(c => c.fieldName === val);
+        this.draftSorts[index].label = column ? `Sort: ${column.label}` : '';
+        this.draftSorts = [...this.draftSorts];
+    }
+
+    handleDraftSortDirectionToggle(event) {
+        const index = event.currentTarget.dataset.index;
+        const currentDir = this.draftSorts[index].direction;
+        this.draftSorts[index].direction = currentDir === 'asc' ? 'desc' : 'asc';
+        this.draftSorts[index].icon = this.draftSorts[index].direction === 'asc' ? 'utility:arrowup' : 'utility:arrowdown';
+        this.draftSorts = [...this.draftSorts];
+    }
+
+    handleRemoveDraftSort(event) {
+        const index = event.currentTarget.dataset.index;
+        this.draftSorts.splice(index, 1);
+        this.updateSortLabels();
+    }
+
+    resetAllSorts() {
+        this.draftSorts = [];
+        this.handleAddDraftSort();
+    }
+
+    applySorts() {
+        this.activeSorts = this.draftSorts.filter(s => s.fieldName); 
+        this.isSortPopupOpen = false;
+        this.processDataEngine();
+    }
+
+    handleRemoveSort(event) { 
+        this.activeSorts.splice(event.target.name, 1); 
+        this.activeSorts = [...this.activeSorts]; 
+        this.processDataEngine(); 
+    }
+
+
+    // --- FILTER POPOVER LOGIC ---
     toggleFilterPopup() {
         this.isFilterPopupOpen = !this.isFilterPopupOpen;
         if (this.isFilterPopupOpen) {
+            this.isSortPopupOpen = false; 
             this.draftFilters = { ...this.filters };
             this.openDropdownName = ''; 
             this.clearAllSearchTerms();
         }
     }
 
-    // Handles clicking empty space in the popover to close dropdowns
     handlePopoverClick(event) {
-        if (!event.target.closest('.slds-combobox_container')) {
-            this.openDropdownName = '';
-        }
+        if (!event.target.closest('.slds-combobox_container')) this.openDropdownName = '';
     }
 
-    // Opens dropdown on focus and clears search
     handleFocusDropdown(event) {
         const name = event.target.dataset.name;
         if (this.openDropdownName !== name) {
@@ -217,34 +284,23 @@ export default class TransactionDataGrid extends LightningElement {
         }
     }
 
-    // Updates text search term
     handleSearchDropdown(event) {
         const name = event.target.dataset.name;
         this.dropdownSearchTerms[name] = event.target.value;
     }
 
-    // Toggles dropdown via Chevron button
     toggleDropdown(event) {
         const dropdownName = event.currentTarget.dataset.name;
-        if (this.openDropdownName === dropdownName) {
-            this.openDropdownName = ''; // Close it
-        } else {
-            this.openDropdownName = dropdownName;
-            this.dropdownSearchTerms[dropdownName] = ''; // Clear search when opening
-        }
+        if (this.openDropdownName === dropdownName) this.openDropdownName = ''; 
+        else { this.openDropdownName = dropdownName; this.dropdownSearchTerms[dropdownName] = ''; }
     }
 
     handleMultiSelect(event) {
         const fieldName = event.target.name;
         const value = event.target.value;
-        const isChecked = event.target.checked;
-        
         let currentValues = [...this.draftFilters[fieldName]];
-        if (isChecked) {
-            currentValues.push(value);
-        } else {
-            currentValues = currentValues.filter(v => v !== value);
-        }
+        if (event.target.checked) currentValues.push(value);
+        else currentValues = currentValues.filter(v => v !== value);
         this.draftFilters = { ...this.draftFilters, [fieldName]: currentValues };
     }
 
@@ -257,23 +313,14 @@ export default class TransactionDataGrid extends LightningElement {
         const section = event.currentTarget.dataset.section;
         if (section === 'date') { this.draftFilters.minDate = null; this.draftFilters.maxDate = null; }
         else if (section === 'amount') { this.draftFilters.minAmount = null; this.draftFilters.maxAmount = null; }
-        else { 
-            this.draftFilters[section] = []; 
-            this.dropdownSearchTerms[section] = '';
-        }
+        else { this.draftFilters[section] = []; this.dropdownSearchTerms[section] = ''; }
         this.draftFilters = { ...this.draftFilters };
     }
 
-    clearAllSearchTerms() {
-        this.dropdownSearchTerms = { Status__c: '', Transaction_ID__c: '', Product_Code__c: '', Customer_ID__c: '', Store_Location__c: '' };
-    }
-
+    clearAllSearchTerms() { this.dropdownSearchTerms = { Status__c: '', Transaction_ID__c: '', Product_Code__c: '', Customer_ID__c: '', Store_Location__c: '' }; }
+    
     resetAllFilters() {
-        this.draftFilters = { 
-            Status__c: [], Transaction_ID__c: [], Product_Code__c: [], 
-            Customer_ID__c: [], Store_Location__c: [], 
-            minAmount: null, maxAmount: null, minDate: null, maxDate: null 
-        };
+        this.draftFilters = { Status__c: [], Transaction_ID__c: [], Product_Code__c: [], Customer_ID__c: [], Store_Location__c: [], minAmount: null, maxAmount: null, minDate: null, maxDate: null };
         this.openDropdownName = '';
         this.clearAllSearchTerms();
     }
@@ -316,7 +363,6 @@ export default class TransactionDataGrid extends LightningElement {
                 let maxD = new Date(this.filters.maxDate); maxD.setHours(23,59,59,999);
                 match = match && new Date(row.Transaction_Date__c) <= maxD;
             }
-
             return match;
         });
 
@@ -338,23 +384,6 @@ export default class TransactionDataGrid extends LightningElement {
         this.updatePagination();
     }
 
-    // --- Sorting & Pagination ---
-    handleAddSort(event) {
-        const fieldName = event.detail.value;
-        const column = this.columns.find(c => c.fieldName === fieldName);
-        let existingSortIndex = this.activeSorts.findIndex(s => s.fieldName === fieldName);
-        if (existingSortIndex > -1) {
-            let currentDir = this.activeSorts[existingSortIndex].direction;
-            this.activeSorts[existingSortIndex].direction = currentDir === 'asc' ? 'desc' : 'asc';
-            this.activeSorts[existingSortIndex].icon = this.activeSorts[existingSortIndex].direction === 'asc' ? 'utility:arrowup' : 'utility:arrowdown';
-        } else {
-            this.activeSorts = [...this.activeSorts, { fieldName: fieldName, label: `${column.label}`, direction: 'asc', icon: 'utility:arrowup' }];
-        }
-        event.target.value = null; 
-        this.processDataEngine();
-    }
-    
-    handleRemoveSort(event) { this.activeSorts.splice(event.target.name, 1); this.activeSorts = [...this.activeSorts]; this.processDataEngine(); }
     handlePageSizeChange(event) { this.pageSize = parseInt(event.detail.value, 10); this.currentPage = 1; this.updatePagination(); }
     handlePrevPage() { if (this.currentPage > 1) { this.currentPage--; this.updatePagination(); } }
     handleNextPage() { if (this.currentPage < this.totalPages) { this.currentPage++; this.updatePagination(); } }

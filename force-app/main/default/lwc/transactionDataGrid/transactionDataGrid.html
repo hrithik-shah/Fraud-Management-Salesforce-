@@ -2,189 +2,257 @@
     <div class="dribbble-card slds-is-relative">
         
         <div class="slds-grid slds-grid_align-spread slds-p-around_medium header-section">
-            <div class="slds-grid slds-grid_vertical-align-center slds-is-relative">
+            <div class="slds-grid slds-grid_vertical-align-center">
                 <h2 class="slds-text-heading_medium slds-text-color_default slds-m-right_medium"><strong>Transactions</strong></h2>
                 
-                <button class={filterButtonClass} onclick={toggleFilterPopup}>
-                    <lightning-icon icon-name="utility:filterList" size="x-small" class="slds-m-right_x-small"></lightning-icon>
-                    Filters
-                </button>
+                <div class="header-action-group slds-grid slds-grid_vertical-align-center">
+                    
+                    <div class="slds-is-relative slds-m-right_small">
+                        <button class={sortButtonClass} onclick={toggleSortPopup}>
+                            <lightning-icon icon-name="utility:sort" size="x-small" class="slds-m-right_x-small"></lightning-icon>
+                            Sort
+                        </button>
 
-                <template if:true={isFilterPopupOpen}>
-                    <section class="custom-filter-popover slds-popover slds-popover_prompt" role="dialog">
-                        <header class="slds-popover__header slds-grid slds-grid_align-spread slds-grid_vertical-align-center">
-                            <h2 class="slds-text-heading_small"><strong>Filter</strong></h2>
-                            <lightning-button-icon icon-name="utility:close" variant="bare" onclick={toggleFilterPopup} title="Close"></lightning-button-icon>
-                        </header>
-                        
-                        <div class="slds-popover__body popup-scroll-area" onclick={handlePopoverClick}>
-                            
-                            <div class="filter-section">
-                                <div class="slds-grid slds-grid_align-spread slds-m-bottom_x-small">
-                                    <span class="section-label">Date range</span>
-                                    <a class="reset-link" data-section="date" onclick={resetSection}>Reset</a>
-                                </div>
-                                <div class="slds-grid slds-gutters">
-                                    <div class="slds-col slds-size_1-of-2">
-                                        <label class="slds-form-element__label">From</label>
-                                        <lightning-input type="date" name="minDate" variant="label-hidden" value={draftFilters.minDate} class="no-format-text" onchange={handleDraftChange}></lightning-input>
-                                    </div>
-                                    <div class="slds-col slds-size_1-of-2">
-                                        <label class="slds-form-element__label">To</label>
-                                        <lightning-input type="date" name="maxDate" variant="label-hidden" value={draftFilters.maxDate} class="no-format-text" onchange={handleDraftChange}></lightning-input>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="filter-section">
-                                <div class="slds-grid slds-grid_align-spread slds-m-bottom_x-small">
-                                    <span class="section-label">Status</span>
-                                    <a class="reset-link" data-section="Status__c" onclick={resetSection}>Reset</a>
-                                </div>
-                                <div class="slds-combobox_container">
-                                    <div class={statusDropdownClass}>
-                                        <div class="slds-combobox__form-element slds-input-has-icon slds-input-has-icon_right">
-                                            <input type="text" class="slds-input slds-combobox__input multi-select-input" data-name="Status__c" value={statusInputValue} placeholder="Search Status..." onfocus={handleFocusDropdown} oninput={handleSearchDropdown} autocomplete="off" />
-                                            <button class="slds-button slds-button_icon slds-input__icon slds-input__icon_right chevron-btn" data-name="Status__c" onclick={toggleDropdown}>
-                                                <lightning-icon icon-name="utility:down" size="x-small"></lightning-icon>
+                        <template if:true={isSortPopupOpen}>
+                            <section class="custom-popover slds-popover slds-popover_prompt" role="dialog">
+                                <header class="slds-popover__header slds-grid slds-grid_align-spread slds-grid_vertical-align-center">
+                                    <h2 class="slds-text-heading_small"><strong>Sort</strong></h2>
+                                    <button class="icon-btn close-popover-btn" onclick={toggleSortPopup} title="Close">
+                                        <lightning-icon icon-name="utility:close" size="small"></lightning-icon>
+                                    </button>
+                                </header>
+                                
+                                <div class="slds-popover__body sort-popover-body">
+                                    <template if:false={hasDraftSorts}>
+                                        <div class="slds-p-around_small slds-text-align_center slds-text-color_weak">No sorts applied.</div>
+                                    </template>
+                                    
+                                    <template for:each={draftSorts} for:item="sort" for:index="index">
+                                        <div key={sort.id} class="sort-row">
+                                            <div class="sort-label">
+                                                {sort.prefixLabel}
+                                            </div>
+                                            <div class="sort-combo-wrapper">
+                                                <lightning-combobox 
+                                                    variant="label-hidden" 
+                                                    value={sort.fieldName} 
+                                                    placeholder="Select an Option"
+                                                    options={sortableColumns} 
+                                                    data-index={index}
+                                                    dropdown-alignment="auto"
+                                                    onchange={handleDraftSortFieldChange}>
+                                                </lightning-combobox>
+                                            </div>
+                                            <button class="icon-btn action-btn" data-index={index} onclick={handleDraftSortDirectionToggle}>
+                                                <lightning-icon icon-name={sort.icon} size="x-small"></lightning-icon>
+                                            </button>
+                                            <button class="icon-btn remove-row-btn" data-index={index} onclick={handleRemoveDraftSort}>
+                                                <lightning-icon icon-name="utility:close" size="x-small"></lightning-icon>
                                             </button>
                                         </div>
-                                        <div class="slds-dropdown slds-dropdown_fluid multi-select-dropdown">
-                                            <ul class="slds-listbox slds-listbox_vertical">
-                                                <template for:each={statusOptionsMapped} for:item="opt">
-                                                    <li key={opt.value} class="slds-listbox__item slds-p-horizontal_small slds-p-vertical_xx-small">
-                                                        <lightning-input type="checkbox" label={opt.label} name="Status__c" value={opt.value} checked={opt.isChecked} onchange={handleMultiSelect}></lightning-input>
-                                                    </li>
-                                                </template>
-                                            </ul>
-                                        </div>
+                                    </template>
+                                    
+                                    <div class="slds-m-top_medium slds-m-bottom_small">
+                                        <button class="add-sort-btn" onclick={handleAddDraftSort}>
+                                            <lightning-icon icon-name="utility:add" size="x-small"></lightning-icon>
+                                            Add Sort
+                                        </button>
                                     </div>
                                 </div>
-                            </div>
+                                
+                                <footer class="slds-popover__footer slds-grid slds-grid_align-spread slds-grid_vertical-align-center">
+                                    <button class="reset-all-btn" onclick={resetAllSorts}>Clear all</button>
+                                    <button class="apply-btn" onclick={applySorts}>Apply</button>
+                                </footer>
+                            </section>
+                        </template>
+                    </div>
 
-                            <div class="filter-section">
-                                <div class="slds-grid slds-grid_align-spread slds-m-bottom_x-small">
-                                    <span class="section-label">Transaction ID</span>
-                                    <a class="reset-link" data-section="Transaction_ID__c" onclick={resetSection}>Reset</a>
-                                </div>
-                                <div class="slds-combobox_container">
-                                    <div class={txnIdDropdownClass}>
-                                        <div class="slds-combobox__form-element slds-input-has-icon slds-input-has-icon_right">
-                                            <input type="text" class="slds-input slds-combobox__input multi-select-input" data-name="Transaction_ID__c" value={txnIdInputValue} placeholder="Search ID..." onfocus={handleFocusDropdown} oninput={handleSearchDropdown} autocomplete="off" />
-                                            <button class="slds-button slds-button_icon slds-input__icon slds-input__icon_right chevron-btn" data-name="Transaction_ID__c" onclick={toggleDropdown}>
-                                                <lightning-icon icon-name="utility:down" size="x-small"></lightning-icon>
-                                            </button>
+                    <div class="slds-is-relative">
+                        <button class={filterButtonClass} onclick={toggleFilterPopup}>
+                            <lightning-icon icon-name="utility:filterList" size="x-small" class="slds-m-right_x-small"></lightning-icon>
+                            Filters
+                        </button>
+
+                        <template if:true={isFilterPopupOpen}>
+                            <section class="custom-popover slds-popover slds-popover_prompt" role="dialog">
+                                <header class="slds-popover__header slds-grid slds-grid_align-spread slds-grid_vertical-align-center">
+                                    <h2 class="slds-text-heading_small"><strong>Filter</strong></h2>
+                                    <button class="icon-btn close-popover-btn" onclick={toggleFilterPopup} title="Close">
+                                        <lightning-icon icon-name="utility:close" size="small"></lightning-icon>
+                                    </button>
+                                </header>
+                                
+                                <div class="slds-popover__body popup-scroll-area" onclick={handlePopoverClick}>
+                                    <div class="filter-section">
+                                        <div class="slds-grid slds-grid_align-spread slds-m-bottom_x-small">
+                                            <span class="section-label">Date range</span>
+                                            <a class="reset-link" data-section="date" onclick={resetSection}>Reset</a>
                                         </div>
-                                        <div class="slds-dropdown slds-dropdown_fluid multi-select-dropdown">
-                                            <ul class="slds-listbox slds-listbox_vertical">
-                                                <template for:each={txnIdOptionsMapped} for:item="opt">
-                                                    <li key={opt.value} class="slds-listbox__item slds-p-horizontal_small slds-p-vertical_xx-small">
-                                                        <lightning-input type="checkbox" label={opt.label} name="Transaction_ID__c" value={opt.value} checked={opt.isChecked} onchange={handleMultiSelect}></lightning-input>
-                                                    </li>
-                                                </template>
-                                            </ul>
+                                        <div class="slds-grid slds-gutters">
+                                            <div class="slds-col slds-size_1-of-2">
+                                                <label class="slds-form-element__label">From</label>
+                                                <lightning-input type="date" name="minDate" variant="label-hidden" value={draftFilters.minDate} class="no-format-text" onchange={handleDraftChange}></lightning-input>
+                                            </div>
+                                            <div class="slds-col slds-size_1-of-2">
+                                                <label class="slds-form-element__label">To</label>
+                                                <lightning-input type="date" name="maxDate" variant="label-hidden" value={draftFilters.maxDate} class="no-format-text" onchange={handleDraftChange}></lightning-input>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            </div>
 
-                            <div class="filter-section">
-                                <div class="slds-grid slds-grid_align-spread slds-m-bottom_x-small">
-                                    <span class="section-label">Customer ID</span>
-                                    <a class="reset-link" data-section="Customer_ID__c" onclick={resetSection}>Reset</a>
-                                </div>
-                                <div class="slds-combobox_container">
-                                    <div class={customerDropdownClass}>
-                                        <div class="slds-combobox__form-element slds-input-has-icon slds-input-has-icon_right">
-                                            <input type="text" class="slds-input slds-combobox__input multi-select-input" data-name="Customer_ID__c" value={customerInputValue} placeholder="Search Customer..." onfocus={handleFocusDropdown} oninput={handleSearchDropdown} autocomplete="off" />
-                                            <button class="slds-button slds-button_icon slds-input__icon slds-input__icon_right chevron-btn" data-name="Customer_ID__c" onclick={toggleDropdown}>
-                                                <lightning-icon icon-name="utility:down" size="x-small"></lightning-icon>
-                                            </button>
+                                    <div class="filter-section">
+                                        <div class="slds-grid slds-grid_align-spread slds-m-bottom_x-small">
+                                            <span class="section-label">Status</span>
+                                            <a class="reset-link" data-section="Status__c" onclick={resetSection}>Reset</a>
                                         </div>
-                                        <div class="slds-dropdown slds-dropdown_fluid multi-select-dropdown">
-                                            <ul class="slds-listbox slds-listbox_vertical">
-                                                <template for:each={customerOptionsMapped} for:item="opt">
-                                                    <li key={opt.value} class="slds-listbox__item slds-p-horizontal_small slds-p-vertical_xx-small">
-                                                        <lightning-input type="checkbox" label={opt.label} name="Customer_ID__c" value={opt.value} checked={opt.isChecked} onchange={handleMultiSelect}></lightning-input>
-                                                    </li>
-                                                </template>
-                                            </ul>
+                                        <div class="slds-combobox_container">
+                                            <div class={statusDropdownClass}>
+                                                <div class="slds-combobox__form-element slds-input-has-icon slds-input-has-icon_right">
+                                                    <input type="text" class="slds-input slds-combobox__input multi-select-input" data-name="Status__c" value={statusInputValue} placeholder="Search Status..." onfocus={handleFocusDropdown} oninput={handleSearchDropdown} autocomplete="off" />
+                                                    <button class="slds-button slds-button_icon slds-input__icon slds-input__icon_right chevron-btn" data-name="Status__c" onclick={toggleDropdown}>
+                                                        <lightning-icon icon-name="utility:down" size="x-small"></lightning-icon>
+                                                    </button>
+                                                </div>
+                                                <div class="slds-dropdown slds-dropdown_fluid multi-select-dropdown">
+                                                    <ul class="slds-listbox slds-listbox_vertical">
+                                                        <template for:each={statusOptionsMapped} for:item="opt">
+                                                            <li key={opt.value} class="slds-listbox__item slds-p-horizontal_small slds-p-vertical_xx-small">
+                                                                <lightning-input type="checkbox" label={opt.label} name="Status__c" value={opt.value} checked={opt.isChecked} onchange={handleMultiSelect}></lightning-input>
+                                                            </li>
+                                                        </template>
+                                                    </ul>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            </div>
 
-                            <div class="filter-section">
-                                <div class="slds-grid slds-grid_align-spread slds-m-bottom_x-small">
-                                    <span class="section-label">Product Code</span>
-                                    <a class="reset-link" data-section="Product_Code__c" onclick={resetSection}>Reset</a>
-                                </div>
-                                <div class="slds-combobox_container">
-                                    <div class={productDropdownClass}>
-                                        <div class="slds-combobox__form-element slds-input-has-icon slds-input-has-icon_right">
-                                            <input type="text" class="slds-input slds-combobox__input multi-select-input" data-name="Product_Code__c" value={productInputValue} placeholder="Search Product..." onfocus={handleFocusDropdown} oninput={handleSearchDropdown} autocomplete="off" />
-                                            <button class="slds-button slds-button_icon slds-input__icon slds-input__icon_right chevron-btn" data-name="Product_Code__c" onclick={toggleDropdown}>
-                                                <lightning-icon icon-name="utility:down" size="x-small"></lightning-icon>
-                                            </button>
+                                    <div class="filter-section">
+                                        <div class="slds-grid slds-grid_align-spread slds-m-bottom_x-small">
+                                            <span class="section-label">Transaction ID</span>
+                                            <a class="reset-link" data-section="Transaction_ID__c" onclick={resetSection}>Reset</a>
                                         </div>
-                                        <div class="slds-dropdown slds-dropdown_fluid multi-select-dropdown">
-                                            <ul class="slds-listbox slds-listbox_vertical">
-                                                <template for:each={productOptionsMapped} for:item="opt">
-                                                    <li key={opt.value} class="slds-listbox__item slds-p-horizontal_small slds-p-vertical_xx-small">
-                                                        <lightning-input type="checkbox" label={opt.label} name="Product_Code__c" value={opt.value} checked={opt.isChecked} onchange={handleMultiSelect}></lightning-input>
-                                                    </li>
-                                                </template>
-                                            </ul>
+                                        <div class="slds-combobox_container">
+                                            <div class={txnIdDropdownClass}>
+                                                <div class="slds-combobox__form-element slds-input-has-icon slds-input-has-icon_right">
+                                                    <input type="text" class="slds-input slds-combobox__input multi-select-input" data-name="Transaction_ID__c" value={txnIdInputValue} placeholder="Search ID..." onfocus={handleFocusDropdown} oninput={handleSearchDropdown} autocomplete="off" />
+                                                    <button class="slds-button slds-button_icon slds-input__icon slds-input__icon_right chevron-btn" data-name="Transaction_ID__c" onclick={toggleDropdown}>
+                                                        <lightning-icon icon-name="utility:down" size="x-small"></lightning-icon>
+                                                    </button>
+                                                </div>
+                                                <div class="slds-dropdown slds-dropdown_fluid multi-select-dropdown">
+                                                    <ul class="slds-listbox slds-listbox_vertical">
+                                                        <template for:each={txnIdOptionsMapped} for:item="opt">
+                                                            <li key={opt.value} class="slds-listbox__item slds-p-horizontal_small slds-p-vertical_xx-small">
+                                                                <lightning-input type="checkbox" label={opt.label} name="Transaction_ID__c" value={opt.value} checked={opt.isChecked} onchange={handleMultiSelect}></lightning-input>
+                                                            </li>
+                                                        </template>
+                                                    </ul>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            </div>
-                            
-                            <div class="filter-section">
-                                <div class="slds-grid slds-grid_align-spread slds-m-bottom_x-small">
-                                    <span class="section-label">Store Location</span>
-                                    <a class="reset-link" data-section="Store_Location__c" onclick={resetSection}>Reset</a>
-                                </div>
-                                <div class="slds-combobox_container">
-                                    <div class={storeDropdownClass}>
-                                        <div class="slds-combobox__form-element slds-input-has-icon slds-input-has-icon_right">
-                                            <input type="text" class="slds-input slds-combobox__input multi-select-input" data-name="Store_Location__c" value={storeInputValue} placeholder="Search Store..." onfocus={handleFocusDropdown} oninput={handleSearchDropdown} autocomplete="off" />
-                                            <button class="slds-button slds-button_icon slds-input__icon slds-input__icon_right chevron-btn" data-name="Store_Location__c" onclick={toggleDropdown}>
-                                                <lightning-icon icon-name="utility:down" size="x-small"></lightning-icon>
-                                            </button>
+
+                                    <div class="filter-section">
+                                        <div class="slds-grid slds-grid_align-spread slds-m-bottom_x-small">
+                                            <span class="section-label">Customer ID</span>
+                                            <a class="reset-link" data-section="Customer_ID__c" onclick={resetSection}>Reset</a>
                                         </div>
-                                        <div class="slds-dropdown slds-dropdown_fluid multi-select-dropdown">
-                                            <ul class="slds-listbox slds-listbox_vertical">
-                                                <template for:each={storeOptionsMapped} for:item="opt">
-                                                    <li key={opt.value} class="slds-listbox__item slds-p-horizontal_small slds-p-vertical_xx-small">
-                                                        <lightning-input type="checkbox" label={opt.label} name="Store_Location__c" value={opt.value} checked={opt.isChecked} onchange={handleMultiSelect}></lightning-input>
-                                                    </li>
-                                                </template>
-                                            </ul>
+                                        <div class="slds-combobox_container">
+                                            <div class={customerDropdownClass}>
+                                                <div class="slds-combobox__form-element slds-input-has-icon slds-input-has-icon_right">
+                                                    <input type="text" class="slds-input slds-combobox__input multi-select-input" data-name="Customer_ID__c" value={customerInputValue} placeholder="Search Customer..." onfocus={handleFocusDropdown} oninput={handleSearchDropdown} autocomplete="off" />
+                                                    <button class="slds-button slds-button_icon slds-input__icon slds-input__icon_right chevron-btn" data-name="Customer_ID__c" onclick={toggleDropdown}>
+                                                        <lightning-icon icon-name="utility:down" size="x-small"></lightning-icon>
+                                                    </button>
+                                                </div>
+                                                <div class="slds-dropdown slds-dropdown_fluid multi-select-dropdown">
+                                                    <ul class="slds-listbox slds-listbox_vertical">
+                                                        <template for:each={customerOptionsMapped} for:item="opt">
+                                                            <li key={opt.value} class="slds-listbox__item slds-p-horizontal_small slds-p-vertical_xx-small">
+                                                                <lightning-input type="checkbox" label={opt.label} name="Customer_ID__c" value={opt.value} checked={opt.isChecked} onchange={handleMultiSelect}></lightning-input>
+                                                            </li>
+                                                        </template>
+                                                    </ul>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            </div>
 
-                            <div class="filter-section" style="border-bottom: none;">
-                                <div class="slds-grid slds-grid_align-spread slds-m-bottom_x-small">
-                                    <span class="section-label">Amount Range</span>
-                                    <a class="reset-link" data-section="amount" onclick={resetSection}>Reset</a>
-                                </div>
-                                <div class="slds-grid slds-gutters">
-                                    <lightning-input type="number" name="minAmount" label="Min" variant="label-hidden" placeholder="Min $" value={draftFilters.minAmount} class="slds-col slds-size_1-of-2" onchange={handleDraftChange}></lightning-input>
-                                    <lightning-input type="number" name="maxAmount" label="Max" variant="label-hidden" placeholder="Max $" value={draftFilters.maxAmount} class="slds-col slds-size_1-of-2" onchange={handleDraftChange}></lightning-input>
-                                </div>
-                            </div>
+                                    <div class="filter-section">
+                                        <div class="slds-grid slds-grid_align-spread slds-m-bottom_x-small">
+                                            <span class="section-label">Product Code</span>
+                                            <a class="reset-link" data-section="Product_Code__c" onclick={resetSection}>Reset</a>
+                                        </div>
+                                        <div class="slds-combobox_container">
+                                            <div class={productDropdownClass}>
+                                                <div class="slds-combobox__form-element slds-input-has-icon slds-input-has-icon_right">
+                                                    <input type="text" class="slds-input slds-combobox__input multi-select-input" data-name="Product_Code__c" value={productInputValue} placeholder="Search Product..." onfocus={handleFocusDropdown} oninput={handleSearchDropdown} autocomplete="off" />
+                                                    <button class="slds-button slds-button_icon slds-input__icon slds-input__icon_right chevron-btn" data-name="Product_Code__c" onclick={toggleDropdown}>
+                                                        <lightning-icon icon-name="utility:down" size="x-small"></lightning-icon>
+                                                    </button>
+                                                </div>
+                                                <div class="slds-dropdown slds-dropdown_fluid multi-select-dropdown">
+                                                    <ul class="slds-listbox slds-listbox_vertical">
+                                                        <template for:each={productOptionsMapped} for:item="opt">
+                                                            <li key={opt.value} class="slds-listbox__item slds-p-horizontal_small slds-p-vertical_xx-small">
+                                                                <lightning-input type="checkbox" label={opt.label} name="Product_Code__c" value={opt.value} checked={opt.isChecked} onchange={handleMultiSelect}></lightning-input>
+                                                            </li>
+                                                        </template>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="filter-section">
+                                        <div class="slds-grid slds-grid_align-spread slds-m-bottom_x-small">
+                                            <span class="section-label">Store Location</span>
+                                            <a class="reset-link" data-section="Store_Location__c" onclick={resetSection}>Reset</a>
+                                        </div>
+                                        <div class="slds-combobox_container">
+                                            <div class={storeDropdownClass}>
+                                                <div class="slds-combobox__form-element slds-input-has-icon slds-input-has-icon_right">
+                                                    <input type="text" class="slds-input slds-combobox__input multi-select-input" data-name="Store_Location__c" value={storeInputValue} placeholder="Search Store..." onfocus={handleFocusDropdown} oninput={handleSearchDropdown} autocomplete="off" />
+                                                    <button class="slds-button slds-button_icon slds-input__icon slds-input__icon_right chevron-btn" data-name="Store_Location__c" onclick={toggleDropdown}>
+                                                        <lightning-icon icon-name="utility:down" size="x-small"></lightning-icon>
+                                                    </button>
+                                                </div>
+                                                <div class="slds-dropdown slds-dropdown_fluid multi-select-dropdown">
+                                                    <ul class="slds-listbox slds-listbox_vertical">
+                                                        <template for:each={storeOptionsMapped} for:item="opt">
+                                                            <li key={opt.value} class="slds-listbox__item slds-p-horizontal_small slds-p-vertical_xx-small">
+                                                                <lightning-input type="checkbox" label={opt.label} name="Store_Location__c" value={opt.value} checked={opt.isChecked} onchange={handleMultiSelect}></lightning-input>
+                                                            </li>
+                                                        </template>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
 
-                        </div>
-                        
-                        <footer class="slds-popover__footer slds-grid slds-grid_align-spread slds-grid_vertical-align-center">
-                            <button class="slds-button slds-button_neutral reset-all-btn" onclick={resetAllFilters}>Reset all</button>
-                            <button class="slds-button apply-btn" onclick={applyFilters}>Apply</button>
-                        </footer>
-                    </section>
-                </template>
+                                    <div class="filter-section" style="border-bottom: none;">
+                                        <div class="slds-grid slds-grid_align-spread slds-m-bottom_x-small">
+                                            <span class="section-label">Amount Range</span>
+                                            <a class="reset-link" data-section="amount" onclick={resetSection}>Reset</a>
+                                        </div>
+                                        <div class="slds-grid slds-gutters">
+                                            <lightning-input type="number" name="minAmount" label="Min" variant="label-hidden" placeholder="Min $" value={draftFilters.minAmount} class="slds-col slds-size_1-of-2" onchange={handleDraftChange}></lightning-input>
+                                            <lightning-input type="number" name="maxAmount" label="Max" variant="label-hidden" placeholder="Max $" value={draftFilters.maxAmount} class="slds-col slds-size_1-of-2" onchange={handleDraftChange}></lightning-input>
+                                        </div>
+                                    </div>
+
+                                </div>
+                                
+                                <footer class="slds-popover__footer slds-grid slds-grid_align-spread slds-grid_vertical-align-center">
+                                    <button class="reset-all-btn" onclick={resetAllFilters}>Reset all</button>
+                                    <button class="apply-btn" onclick={applyFilters}>Apply</button>
+                                </footer>
+                            </section>
+                        </template>
+                    </div>
+
+                </div>
             </div>
             
             <div class="action-buttons">
@@ -202,14 +270,8 @@
                         <template for:each={activeFilterTags} for:item="tag">
                             <lightning-pill key={tag.name} name={tag.name} label={tag.label} onremove={handleRemoveFilter}></lightning-pill>
                         </template>
-                    </div>
-                </div>
-
-                <div class="slds-grid slds-grid_vertical-align-center">
-                    <lightning-combobox name="sortField" variant="label-hidden" placeholder="Add sort..." options={sortableColumns} class="sort-combo slds-m-right_small" onchange={handleAddSort}></lightning-combobox>
-                    <div class="active-sorts">
                         <template for:each={activeSorts} for:item="sort" for:index="index">
-                            <lightning-pill key={sort.fieldName} label={sort.label} name={index} onremove={handleRemoveSort}>
+                            <lightning-pill key={sort.fieldName} label={sort.label} name={index} onremove={handleRemoveSort} class="sort-pill">
                                 <lightning-icon icon-name={sort.icon} size="x-small"></lightning-icon>
                             </lightning-pill>
                         </template>
