@@ -3,73 +3,233 @@
     background-color: #ffffff;
     border-radius: 12px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-    border: 1px solid #f3f3f3;
-    overflow: hidden;
+    border: 1px solid #e2e8f0;
+    overflow: visible; 
     font-family: 'Salesforce Sans', system-ui, sans-serif;
 }
 
 /* Header Styling */
 .header-section {
-    border-bottom: 1px solid #f3f3f3;
-    background-color: #fafbfc;
+    background-color: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
 }
 
 .header-section h2 {
     font-size: 1.25rem;
-    color: #1b1b1b;
+    color: #1e293b;
 }
 
-/* Override standard button corners for a modern feel */
 .action-buttons lightning-button {
     --sds-c-button-radius-border: 8px;
 }
 
-/* Filter Panel Styling */
-.filter-panel {
+/* Custom Filter Toggle Button */
+.dribbble-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 0 16px;
+    height: 36px;
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    color: #475569;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.dribbble-btn:hover {
+    background-color: #f8fafc;
+    border-color: #cbd5e1;
+}
+
+.dribbble-btn.active-btn {
+    background-color: #f5f3ff;
+    border-color: #8b5cf6;
+    color: #6d28d9;
+}
+
+.dribbble-btn.active-btn lightning-icon {
+    --sds-c-icon-color-foreground-default: #6d28d9;
+}
+
+/* Filter Popover Styling */
+.custom-filter-popover {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 100px;
+    width: 380px;
+    max-height: 550px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+}
+
+.slds-popover__header {
+    background-color: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
+    border-radius: 12px 12px 0 0;
+    padding: 1rem;
+}
+
+.popup-scroll-area {
+    padding: 0;
+    overflow-y: auto;
+    max-height: 400px;
+}
+
+.filter-section {
+    padding: 1rem;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+/* Specific styling for the Custom Multi-Select Dropdowns */
+.multi-select-input {
+    background-color: #ffffff !important;
+}
+
+.multi-select-input::placeholder {
+    color: #1e293b;
+}
+
+.multi-select-dropdown {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.chevron-btn {
+    position: absolute;
+    right: 0;
+    top: 0;
+    height: 100%;
+    width: 2rem;
+    z-index: 2;
+}
+.chevron-btn:focus {
+    box-shadow: none;
+}
+
+.section-label {
+    color: #64748b;
+    font-weight: 500;
+    font-size: 0.85rem;
+}
+
+.reset-link {
+    color: #8b5cf6;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.reset-link:hover {
+    text-decoration: underline;
+    color: #6d28d9;
+}
+
+/* Hide Date Format Text */
+.no-format-text {
+    --lwc-formHelperTextColor: transparent;
+    margin-bottom: -20px; 
+    display: block;
+}
+
+/* Popup Footer Buttons */
+.slds-popover__footer {
+    background-color: #ffffff;
+    border-top: 1px solid #e2e8f0;
+    border-radius: 0 0 12px 12px;
+    padding: 1rem;
+}
+
+.reset-all-btn {
+    background-color: #f1f5f9;
+    border: none;
+    color: #475569;
+    border-radius: 6px;
+    padding: 0 16px;
+    font-weight: 600;
+}
+
+.apply-btn {
+    background-color: #8b5cf6;
+    border: none;
+    color: #ffffff;
+    border-radius: 6px;
+    padding: 0 24px;
+    font-weight: 600;
+    transition: background-color 0.2s ease;
+}
+
+.apply-btn:hover {
+    background-color: #7c3aed;
+}
+
+/* Active Filter Tags Section */
+.active-filters-section {
     background-color: #fafbfc;
 }
 
-.filter-panel lightning-input,
-.filter-panel lightning-combobox {
-    --sds-c-input-radius-border: 6px;
+.filter-tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
 }
 
-/* Multi-Sort Pill Area */
+/* Pill Styling */
+.filter-tags-container lightning-pill {
+    --sds-c-pill-color-background: #ffffff;
+    --sds-c-pill-radius-border: 100px; 
+    --sds-c-pill-text-color: #1b1b1b; 
+    --sds-c-pill-color-border: #b0adab; 
+    font-weight: 400;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+    font-size: 0.75rem; 
+}
+
+/* Multi-Sort Area */
 .sort-combo {
-    width: 200px;
+    width: 150px;
 }
 
 .active-sorts {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
-    margin-left: 1rem;
 }
 
 .active-sorts lightning-pill {
-    --sds-c-pill-color-background: #ffffff;
+    --sds-c-pill-color-background: #f1f5f9;
     --sds-c-pill-radius-border: 6px;
-    border: 1px solid #e5e5e5;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    border: none;
 }
 
-/* Table Styling Overrides */
+/* --- Table Scroll-Lock Fix --- */
 .table-container {
-    border-top: 1px solid #f3f3f3;
-    border-bottom: 1px solid #f3f3f3;
+    overflow: visible; 
+    height: max-content; 
 }
 
-/* Targets internal shadow DOM of lightning-datatable to soften the lines */
 .table-container lightning-datatable {
     --lwc-tableColorBackgroundHeader: #ffffff;
-    --lwc-colorBorder: #f3f3f3;
+    --lwc-colorBorder: #e2e8f0;
     --lwc-spacingXSmall: 0.75rem; 
+    height: auto !important;     
+    max-height: none !important; 
+    display: block; 
 }
 
 /* Footer Pagination */
 .footer-section {
     background-color: #ffffff;
-    color: #5f6368;
+    color: #64748b;
+    border-top: 1px solid #e2e8f0;
 }
 
 .page-size-selector {
@@ -77,7 +237,7 @@
     --sds-c-input-radius-border: 6px;
 }
 
-/* Modal Status Badges (Pills) */
+/* Modal Status Badges */
 .badge {
     padding: 4px 12px;
     border-radius: 12px;
@@ -88,22 +248,7 @@
     letter-spacing: 0.5px;
 }
 
-.badge-approved { 
-    background-color: #e5f6eb; 
-    color: #0ba959; 
-}
-
-.badge-pending { 
-    background-color: #e5f2fb; 
-    color: #0070d2; 
-}
-
-.badge-fraudulent { 
-    background-color: #fce5e8; 
-    color: #ea001e; 
-}
-
-.badge-cancelled { 
-    background-color: #f3f3f3; 
-    color: #747474; 
-}
+.badge-approved { background-color: #e5f6eb; color: #0ba959; }
+.badge-pending { background-color: #e5f2fb; color: #0070d2; }
+.badge-fraudulent { background-color: #fce5e8; color: #ea001e; }
+.badge-cancelled { background-color: #f1f5f9; color: #64748b; }
