@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LightningMessageChannel xmlns="http://soap.sforce.com/2006/04/metadata">
+    <masterLabel>TransactionSelected</masterLabel>
+    <isExposed>true</isExposed>
+    <description>Passes transaction IDs and actions between the dashboard list and detail view.</description>
+    <lightningMessageFields>
+        <fieldName>transactionId</fieldName>
+        <description>The ID of the transaction</description>
+    </lightningMessageFields>
+    <lightningMessageFields>
+        <fieldName>action</fieldName>
+        <description>The action taking place (e.g., 'select', 'approve_txn', 'reject_txn')</description>
+    </lightningMessageFields>
+</LightningMessageChannel>

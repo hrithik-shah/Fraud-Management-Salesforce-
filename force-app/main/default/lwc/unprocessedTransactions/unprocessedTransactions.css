@@ -1,0 +1,9 @@
+:host {
+    display: block;
+    height: 100%;
+}
+
+.scroll-container {
+    position: relative;
+    z-index: 0; /* Ensures the dropdown menu overlaps the table */
+}

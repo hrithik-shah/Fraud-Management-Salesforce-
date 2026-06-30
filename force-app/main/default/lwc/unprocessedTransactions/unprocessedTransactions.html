@@ -1,0 +1,26 @@
+<template>
+    <lightning-card title="Unprocessed Transactions" icon-name="standard:record">
+        <div slot="actions">
+            <lightning-button-group>
+                <lightning-button label="Approve Selected" variant="success" onclick={handleBulkApprove} disabled={isBulkDisabled}></lightning-button>
+                <lightning-button label="Cancel Selected" onclick={handleBulkCancel} disabled={isBulkDisabled}></lightning-button>
+                <lightning-button label="Mark Fraud Selected" variant="destructive" onclick={handleBulkFraud} disabled={isBulkDisabled}></lightning-button>
+            </lightning-button-group>
+        </div>
+
+        <div class="slds-m-around_medium">
+            <template if:true={transactions}>
+                <lightning-datatable
+                    key-field="Id"
+                    data={transactions}
+                    columns={columns}
+                    onrowaction={handleRowAction}
+                    onrowselection={handleRowSelection}>
+                </lightning-datatable>
+            </template>
+            <template if:true={error}>
+                <div class="slds-text-color_error">Error loading transactions: {error}</div>
+            </template>
+        </div>
+    </lightning-card>
+</template>

@@ -1,0 +1,45 @@
+<template>
+    <lightning-card title="Transaction Details" icon-name="standard:search">
+
+        <div class="slds-is-relative slds-m-around_medium">
+        
+            <div slot="actions">
+                <template if:true={transactionId}>
+                    <lightning-button-group>
+                        <lightning-button label="Approve" variant="success" onclick={handleApprove}></lightning-button>
+                        <lightning-button label="Cancel" onclick={handleCancel}></lightning-button>
+                        <lightning-button label="Fraud" variant="destructive" onclick={handleFraud}></lightning-button>
+                    </lightning-button-group>
+                </template>
+            </div>
+
+            <div class="slds-m-around_medium">
+                <template if:true={transactionId}>
+                    <lightning-record-view-form record-id={transactionId} object-api-name="Transaction__c">
+                        <div class="slds-grid slds-wrap">
+                            <div class="slds-col slds-size_1-of-2">
+                                <lightning-output-field field-name="Transaction_ID__c"></lightning-output-field>
+                                <lightning-output-field field-name="Amount__c"></lightning-output-field>
+                                <lightning-output-field field-name="Product_Code__c"></lightning-output-field>
+                                <lightning-output-field field-name="Store_Location__c"></lightning-output-field>
+                            </div>
+                            <div class="slds-col slds-size_1-of-2">
+                                <lightning-output-field field-name="Card__r.Customer_ID__c"></lightning-output-field>
+                                <lightning-output-field field-name="Card__r.Masked_Card_Number__c"></lightning-output-field>
+                                <lightning-output-field field-name="Transaction_Date__c"></lightning-output-field>
+                                <lightning-output-field field-name="Status__c"></lightning-output-field>
+                            </div>
+                        </div>
+                    </lightning-record-view-form>
+                </template>
+                
+                <template if:false={transactionId}>
+                    <div class="slds-text-align_center slds-text-color_weak slds-m-top_large">
+                        You're all caught up! No transactions currently selected.
+                    </div>
+                </template>
+            </div>
+
+        </div>
+    </lightning-card>
+</template>

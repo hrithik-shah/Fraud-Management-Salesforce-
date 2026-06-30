@@ -1,0 +1,35 @@
+:host {
+    display: block;
+    margin-bottom: 1rem; 
+}
+
+.details-container {
+    height: 260px; 
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+.skeleton-label {
+    height: 12px;
+    width: 35%;
+    background-color: #e2e2e2; /* Added a default base color just in case */
+    border-radius: 4px;
+    margin-bottom: 8px;
+    animation: pulse 1.5s infinite;
+}
+
+.skeleton-value {
+    height: 18px;
+    width: 75%;
+    background-color: #e2e2e2; /* Added a default base color just in case */
+    border-radius: 4px;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% { background-color: #f3f3f3; }
+    50% { background-color: #e2e2e2; }
+    100% { background-color: #f3f3f3; }
+}
