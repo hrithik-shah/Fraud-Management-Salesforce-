@@ -1,0 +1,131 @@
+<template>
+    <div class="dashboard-wrapper slds-p-around_medium">
+        
+        <div class="slds-m-bottom_large slds-grid slds-grid_align-spread slds-grid_vertical-align-center">
+            <h1 class="slds-text-heading_large dashboard-title"><strong>Partner Dashboard</strong></h1>
+            <lightning-button-icon icon-name="utility:refresh" alternative-text="Refresh" title="Refresh" onclick={handleRefresh} variant="border-filled"></lightning-button-icon>
+        </div>
+
+        <div class="slds-grid slds-wrap slds-gutters slds-m-bottom_medium">
+            <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-3 slds-m-bottom_medium">
+                <div class="kpi-card">
+                    <div class="slds-grid slds-grid_align-spread">
+                        <p class="kpi-label">Current Month Revenue</p>
+                        <lightning-icon icon-name="standard:reward" size="small"></lightning-icon>
+                    </div>
+                    <h2 class="kpi-value slds-text-color_success">
+                        <lightning-formatted-number value={metrics.currMonthRevenue} format-style="currency" currency-code="USD"></lightning-formatted-number>
+                    </h2>
+                </div>
+            </div>
+            
+            <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-3 slds-m-bottom_medium">
+                <div class="kpi-card">
+                    <div class="slds-grid slds-grid_align-spread">
+                        <p class="kpi-label">Last Month Revenue</p>
+                        <lightning-icon icon-name="standard:investment_account" size="small"></lightning-icon>
+                    </div>
+                    <h2 class="kpi-value">
+                        <lightning-formatted-number value={metrics.lastMonthRevenue} format-style="currency" currency-code="USD"></lightning-formatted-number>
+                    </h2>
+                </div>
+            </div>
+
+            <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-3 slds-m-bottom_medium">
+                <div class="kpi-card">
+                    <div class="slds-grid slds-grid_align-spread">
+                        <p class="kpi-label">Revenue Lost (Fraud/Cancel)</p>
+                        <lightning-icon icon-name="standard:first_non_empty_return" size="small"></lightning-icon>
+                    </div>
+                    <h2 class="kpi-value slds-text-color_error">
+                        <lightning-formatted-number value={metrics.revenueLost} format-style="currency" currency-code="USD"></lightning-formatted-number>
+                    </h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="slds-grid slds-wrap slds-gutters slds-m-bottom_medium">
+            <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-4 slds-m-bottom_medium">
+                <div class="kpi-card">
+                    <p class="kpi-label">Pending Transactions</p>
+                    <h2 class="kpi-value text-blue">{metrics.pendingCount}</h2>
+                    <p class="kpi-subtext">Needs Review</p>
+                </div>
+            </div>
+
+            <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-4 slds-m-bottom_medium">
+                <div class="kpi-card">
+                    <p class="kpi-label">Fraudulent (Last Month)</p>
+                    <h2 class="kpi-value slds-text-color_error">{metrics.fraudCount}</h2>
+                    <p class="kpi-subtext">Flagged accounts</p>
+                </div>
+            </div>
+
+            <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-4 slds-m-bottom_medium">
+                <div class="kpi-card">
+                    <p class="kpi-label">Cancelled (Last Month)</p>
+                    <h2 class="kpi-value text-gray">{metrics.cancelCount}</h2>
+                    <p class="kpi-subtext">User or system voided</p>
+                </div>
+            </div>
+
+            <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-4 slds-m-bottom_medium">
+                <div class="kpi-card">
+                    <p class="kpi-label">Avg Transaction Value</p>
+                    <h2 class="kpi-value">
+                        <lightning-formatted-number value={metrics.avgTransactionValue} format-style="currency" currency-code="USD"></lightning-formatted-number>
+                    </h2>
+                    <p class="kpi-subtext">All time</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="slds-grid slds-wrap slds-gutters">
+            
+            <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-m-bottom_medium">
+                <div class="kpi-card list-card">
+                    <div class="slds-border_bottom slds-p-bottom_small slds-m-bottom_small">
+                        <h3 class="slds-text-heading_small"><strong>Top 3 Stores (Last Month)</strong></h3>
+                    </div>
+                    <ul class="slds-list_dotted slds-m-left_none list-unstyled">
+                        <template for:each={metrics.topStores} for:item="store" for:index="index">
+                            <li key={store.name} class="slds-grid slds-grid_align-spread slds-p-vertical_xx-small">
+                                <span><strong class="text-gray slds-m-right_x-small">#{store.rank}</strong> {store.name}</span>
+                                <strong><lightning-formatted-number value={store.revenue} format-style="currency" currency-code="USD"></lightning-formatted-number></strong>
+                            </li>
+                        </template>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-3 slds-m-bottom_medium">
+                <div class="kpi-card list-card slds-grid slds-grid_vertical slds-grid_align-center slds-grid_vertical-align-center">
+                    <lightning-progress-ring value={metrics.repeatCustomerPercent} size="large" variant="active-step"></lightning-progress-ring>
+                    <h2 class="kpi-value slds-m-top_medium">{metrics.repeatCustomerPercent}%</h2>
+                    <p class="kpi-label slds-text-align_center slds-m-top_x-small">Transactions from Repeat Customers<br/>(Top 3 Stores, Last Month)</p>
+                </div>
+            </div> -->
+
+            <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-m-bottom_medium">
+                <div class="kpi-card list-card">
+                    <div class="slds-border_bottom slds-p-bottom_small slds-m-bottom_small">
+                        <h3 class="slds-text-heading_small"><strong>Top Products (All Time)</strong></h3>
+                    </div>
+                    <ul class="slds-list_dotted slds-m-left_none list-unstyled">
+                        <template for:each={metrics.topProducts} for:item="product" for:index="index">
+                            <li key={product.name} class="slds-grid slds-grid_align-spread slds-p-vertical_xx-small">
+                                <span><lightning-icon icon-name="standard:product" size="x-small" class="slds-m-right_x-small"></lightning-icon> {product.name}</span>
+                                <span class="slds-badge">{product.count} txns</span>
+                            </li>
+                        </template>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+
+        <template if:true={isLoading}>
+            <lightning-spinner alternative-text="Loading" size="medium"></lightning-spinner>
+        </template>
+    </div>
+</template>

@@ -1,0 +1,71 @@
+.dashboard-wrapper {
+    background-color: #f8fafc;
+    min-height: 100vh;
+    font-family: 'Salesforce Sans', system-ui, sans-serif;
+}
+
+.dashboard-title {
+    color: #0f172a;
+    font-size: 1.5rem;
+}
+
+.kpi-card {
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    border: 1px solid #e2e8f0;
+    padding: 1.5rem;
+    height: 100%;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.06);
+}
+
+/* Card Typography */
+.kpi-label {
+    color: #64748b;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+}
+
+.kpi-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1e293b;
+    line-height: 1.2;
+}
+
+.kpi-subtext {
+    color: #94a3b8;
+    font-size: 0.8rem;
+    margin-top: 0.25rem;
+}
+
+.list-card {
+    padding: 1.25rem;
+}
+
+.list-unstyled {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+.list-unstyled li {
+    font-size: 0.95rem;
+    color: #334155;
+}
+
+.text-blue { color: #0176d3; }
+.text-gray { color: #64748b; }
+
+lightning-progress-ring {
+    --sds-c-progress-ring-color-background: #e2e8f0;
+    --sds-c-progress-ring-color-foreground: #8b5cf6; 
+}
