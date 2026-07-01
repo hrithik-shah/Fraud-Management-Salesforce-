@@ -18,7 +18,6 @@ export default class EmployeeCardBrowser extends LightningElement {
     @track cards = [];
     @track isFlowOpen = false;
     
-    // New variables to handle dynamic flows
     @track activeFlowApiName;
     @track flowModalTitle;
     @track flowVariables = [];
@@ -50,15 +49,13 @@ export default class EmployeeCardBrowser extends LightningElement {
         refreshApex(this.wiredCardsResult);
     }
 
-    // Opens the new customer lookup flow
-    openReportStolenFlow() {
-        this.flowVariables = []; // No initial inputs needed for this flow
-        this.activeFlowApiName = 'Report_Stolen_Card_Flow'; // API name of your new flow
+    openFindAndReportStolenFlow() {
+        this.flowVariables = [];
+        this.activeFlowApiName = 'Find_and_Report_Stolen_Card';
         this.flowModalTitle = 'Report Stolen Card';
         this.isFlowOpen = true;
     }
 
-    // Opens the existing specific-card flow
     handleRowAction(event) {
         const actionName = event.detail.action.name;
         const row = event.detail.row;
@@ -71,7 +68,7 @@ export default class EmployeeCardBrowser extends LightningElement {
                     value: row.Id
                 }
             ];
-            this.activeFlowApiName = 'Stolen_Card'; // API name of your original flow
+            this.activeFlowApiName = 'Stolen_Card';
             this.flowModalTitle = 'Verify & Secure Card';
             this.isFlowOpen = true;
         }
