@@ -28,12 +28,10 @@ public with sharing class StolenCardSecurityAction {
         }
         
         Map<Id, Card__c> cardMap = new Map<Id, Card__c>([
-            SELECT Id, Name, Card_Number__c, Account__c, Status__c 
+            SELECT Id, Name, Account__c, Customer_ID__c, Card_Number_Last_4__c, Status__c 
             FROM Card__c 
             WHERE Id IN :cardIds
         ]);
-        
-        Set<String> generatedNumbers = new Set<String>(); // FIX: Prevents duplicate card generation errors
         
         for(FlowInput req : requests) {
             Card__c originalCard = cardMap.get(req.cardId);
@@ -44,7 +42,7 @@ public with sharing class StolenCardSecurityAction {
             
             Case newCase = new Case(
                 AccountId = originalCard.Account__c,
-                Subject = 'Stolen Card Report: ' + originalCard.Card_Number__c,
+                Subject = 'Stolen Card Report: ****-' + originalCard.Card_Number_Last_4__c,
                 Description = 'Reported Stolen At: ' + req.timeStolen + '\n\nEmployee Remarks:\n' + req.remark,
                 Status = 'New',
                 Origin = 'Phone',
@@ -52,19 +50,14 @@ public with sharing class StolenCardSecurityAction {
             );
             casesToInsert.add(newCase);
 
-            String uniqueCardNumber;
-            do {
-                Long randomLong = Math.abs(Crypto.getRandomLong());
-                uniqueCardNumber = String.valueOf(randomLong).leftPad(16, '0').right(16);
-            } while (generatedNumbers.contains(uniqueCardNumber));
-            
-            generatedNumbers.add(uniqueCardNumber);
+            Integer uniqueLast4 = Math.mod(Math.abs(Crypto.getRandomInteger()), 9000) + 1000;
             
             Card__c tempCard = new Card__c(
                 Name = 'TEMP - ' + originalCard.Name,
                 Account__c = originalCard.Account__c,
+                Customer_ID__c = originalCard.Customer_ID__c,
                 Original_Card__c = originalCard.Id,
-                Card_Number__c = uniqueCardNumber,
+                Card_Number_Last_4__c = uniqueLast4,
                 Expiration_Date__c = Date.today().addDays(30),
                 Status__c = 'Active'
             );
