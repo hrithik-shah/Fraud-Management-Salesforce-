@@ -298,7 +298,14 @@
         <div class="slds-grid slds-grid_align-spread slds-p-around_medium footer-section">
             <div class="slds-grid slds-grid_vertical-align-center">
                 <span class="slds-m-right_small">Rows per page:</span>
-                <lightning-combobox variant="label-hidden" value={pageSizeStr} options={pageSizeOptions} onchange={handlePageSizeChange} class="page-size-selector"></lightning-combobox>
+                <lightning-combobox 
+                    variant="label-hidden" 
+                    value={pageSizeStr} 
+                    options={pageSizeOptions} 
+                    onchange={handlePageSizeChange} 
+                    class="page-size-selector"
+                    dropdown-alignment="bottom-left">
+                </lightning-combobox>
             </div>
             
             <div class="slds-grid slds-grid_vertical-align-center">
