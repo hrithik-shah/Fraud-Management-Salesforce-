@@ -43,7 +43,7 @@ export default class TransactionDataGrid extends LightningElement {
     subscription = null;
 
     currentPage = 1; 
-    pageSize = 10;
+    pageSize = 20;
     @track filtersJSON = '{}';
     @track sortsJSON = '[]';
 
