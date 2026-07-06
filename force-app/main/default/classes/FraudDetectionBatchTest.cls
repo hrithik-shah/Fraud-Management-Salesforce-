@@ -9,7 +9,6 @@ private class FraudDetectionBatchTest {
         Card__c testCard = new Card__c(
             Name = 'Fraud Test Card', 
             Status__c = 'Active', 
-            Account__c = acc.Id, 
             Expiration_Date__c = Date.today().addYears(2), 
             Cardholder_Name__c = 'Fraud User', 
             Card_Number_Last_4__c = 4444, 

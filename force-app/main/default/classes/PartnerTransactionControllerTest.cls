@@ -11,7 +11,6 @@ private class PartnerTransactionControllerTest {
 
         testCard = new Card__c(
             Name = 'Partner Test Card', 
-            Account__c = acc.Id, 
             Expiration_Date__c = Date.today().addYears(2), 
             Cardholder_Name__c = 'Partner User', 
             Card_Number_Last_4__c = 6666, 

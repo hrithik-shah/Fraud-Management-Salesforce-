@@ -8,7 +8,6 @@ private class PartnerDashboardControllerTest {
 
         Card__c card = new Card__c(
             Name = 'Dashboard Test Card', 
-            Account__c = acc.Id, 
             Expiration_Date__c = Date.today().addYears(2), 
             Cardholder_Name__c = 'Dash User', 
             Card_Number_Last_4__c = 5555, 

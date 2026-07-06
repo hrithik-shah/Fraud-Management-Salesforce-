@@ -8,7 +8,6 @@ private class StolenCardSecurityActionTest {
 
         Card__c originalCard = new Card__c(
             Name = 'John Doe Visa',
-            Account__c = acc.Id,
             Expiration_Date__c = Date.today().addYears(2), 
             Cardholder_Name__c = 'John Doe', 
             Customer_ID__c = 'CUST-SEC-01',

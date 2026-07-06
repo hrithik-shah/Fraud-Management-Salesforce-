@@ -7,10 +7,10 @@ private class CustomerLookupControllerTest {
         insert acc;
 
         List<Card__c> cards = new List<Card__c>{
-            new Card__c(Name = 'Card 1', Account__c = acc.Id, Expiration_Date__c = Date.today().addYears(2), Cardholder_Name__c = 'Test User', Card_Number_Last_4__c = 1001, Customer_ID__c = 'CUST-10001', Status__c = 'Active'),
-            new Card__c(Name = 'Card 2', Account__c = acc.Id, Expiration_Date__c = Date.today().addYears(2), Cardholder_Name__c = 'Test User', Card_Number_Last_4__c = 1002, Customer_ID__c = 'CUST-10002', Status__c = 'Active'),
-            new Card__c(Name = 'Card 3', Account__c = acc.Id, Expiration_Date__c = Date.today().addYears(2), Cardholder_Name__c = 'Test User', Card_Number_Last_4__c = 1003, Customer_ID__c = 'CUST-20001', Status__c = 'Active'),
-            new Card__c(Name = 'Card 4', Account__c = acc.Id, Expiration_Date__c = Date.today().addYears(2), Cardholder_Name__c = 'Test User', Card_Number_Last_4__c = 1004, Customer_ID__c = 'CUST-10004', Status__c = 'Active')
+            new Card__c(Name = 'Card 1', Expiration_Date__c = Date.today().addYears(2), Cardholder_Name__c = 'Test User', Card_Number_Last_4__c = 1001, Customer_ID__c = 'CUST-10001', Status__c = 'Active'),
+            new Card__c(Name = 'Card 2', Expiration_Date__c = Date.today().addYears(2), Cardholder_Name__c = 'Test User', Card_Number_Last_4__c = 1002, Customer_ID__c = 'CUST-10002', Status__c = 'Active'),
+            new Card__c(Name = 'Card 3', Expiration_Date__c = Date.today().addYears(2), Cardholder_Name__c = 'Test User', Card_Number_Last_4__c = 1003, Customer_ID__c = 'CUST-20001', Status__c = 'Active'),
+            new Card__c(Name = 'Card 4', Expiration_Date__c = Date.today().addYears(2), Cardholder_Name__c = 'Test User', Card_Number_Last_4__c = 1004, Customer_ID__c = 'CUST-10004', Status__c = 'Active')
         };
         insert cards;
     }

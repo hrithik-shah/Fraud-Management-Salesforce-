@@ -28,7 +28,7 @@ public with sharing class StolenCardSecurityAction {
         }
         
         Map<Id, Card__c> cardMap = new Map<Id, Card__c>([
-            SELECT Id, Name, Account__c, Customer_ID__c, Card_Number_Last_4__c, Status__c 
+            SELECT Id, Name, Customer_ID__c, Card_Number_Last_4__c, Status__c 
             FROM Card__c 
             WHERE Id IN :cardIds
         ]);
@@ -41,12 +41,12 @@ public with sharing class StolenCardSecurityAction {
             cardsToUpdate.add(originalCard);
             
             Case newCase = new Case(
-                AccountId = originalCard.Account__c,
                 Subject = 'Stolen Card Report: ****-' + originalCard.Card_Number_Last_4__c,
                 Description = 'Reported Stolen At: ' + req.timeStolen + '\n\nEmployee Remarks:\n' + req.remark,
                 Status = 'New',
                 Origin = 'Phone',
-                Reported_Time__c = req.timeStolen
+                Reported_Time__c = req.timeStolen,
+                Card__c = originalCard.Id
             );
             casesToInsert.add(newCase);
 
@@ -54,7 +54,6 @@ public with sharing class StolenCardSecurityAction {
             
             Card__c tempCard = new Card__c(
                 Name = 'TEMP - ' + originalCard.Name,
-                Account__c = originalCard.Account__c,
                 Customer_ID__c = originalCard.Customer_ID__c,
                 Original_Card__c = originalCard.Id,
                 Card_Number_Last_4__c = uniqueLast4,
