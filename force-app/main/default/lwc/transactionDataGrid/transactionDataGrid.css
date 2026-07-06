@@ -304,8 +304,9 @@
 }
 
 .page-size-selector {
-    width: 70px;
+    width: 80px;
     --sds-c-input-radius-border: 6px;
+    margin-top: 12px;
 }
 
 .badge {
@@ -318,7 +319,7 @@
     letter-spacing: 0.5px;
 }
 
-.badge-approved { background-color: #e5f6eb; color: #0ba959; }
+.badge-approved { background-color: #060606; color: #0ba959; }
 .badge-pending { background-color: #e5f2fb; color: #0070d2; }
 .badge-fraudulent { background-color: #fce5e8; color: #ea001e; }
 .badge-cancelled { background-color: #f1f5f9; color: #64748b; }
