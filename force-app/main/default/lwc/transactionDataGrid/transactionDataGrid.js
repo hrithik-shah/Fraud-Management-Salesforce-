@@ -1,7 +1,8 @@
 import { LightningElement, wire, track } from 'lwc';
 import { refreshApex } from '@salesforce/apex';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
-import getTransactions from '@salesforce/apex/PartnerTransactionController.getTransactions';
+import getPaginatedTransactions from '@salesforce/apex/TransactionPaginationController.getPaginatedTransactions';
+import getFilterOptions from '@salesforce/apex/TransactionPaginationController.getFilterOptions';
 import updateTransactionStatuses from '@salesforce/apex/PartnerTransactionController.updateTransactionStatuses';
 import { publish, subscribe, MessageContext, APPLICATION_SCOPE } from 'lightning/messageService';
 import TRANSACTION_SELECTED_CHANNEL from '@salesforce/messageChannel/TransactionSelected__c';
@@ -35,12 +36,17 @@ const COLUMNS = [
 export default class TransactionDataGrid extends LightningElement {
     columns = COLUMNS;
     
-    @track allData = [];      
-    @track filteredData = []; 
     @track paginatedData = [];
+    @track totalRecords = 0;
     selectedRows = [];
     wiredTransactionResult;
     subscription = null;
+
+    // Reactive parameters for server-side logic
+    currentPage = 1; 
+    pageSize = 10;
+    @track filtersJSON = '{}';
+    @track sortsJSON = '[]';
 
     // Popover States
     @track isFilterPopupOpen = false;
@@ -66,15 +72,15 @@ export default class TransactionDataGrid extends LightningElement {
 
     allTxnIdOptions = []; allProductOptions = []; allCustomerOptions = []; allStoreOptions = [];
 
-    currentPage = 1; pageSize = 10;
-    isModalOpen = false; @track selectedRecord = null;
+    isModalOpen = false; 
+    @track selectedRecord = null;
 
     @wire(MessageContext) messageContext;
 
     // --- Standard Getters ---
     get isBulkDisabled() { return this.selectedRows.length === 0; }
     get pageSizeStr() { return this.pageSize.toString(); }
-    get totalPages() { return Math.ceil(this.filteredData.length / this.pageSize) || 1; }
+    get totalPages() { return Math.ceil(this.totalRecords / this.pageSize) || 1; }
     get isFirstPage() { return this.currentPage === 1; }
     get isLastPage() { return this.currentPage >= this.totalPages; }
     get pageSizeOptions() { return [{ label: '10', value: '10' }, { label: '25', value: '25' }, { label: '50', value: '50' }, { label: '100', value: '100' }]; }
@@ -146,6 +152,7 @@ export default class TransactionDataGrid extends LightningElement {
 
     connectedCallback() {
         this.subscription = subscribe(this.messageContext, TRANSACTION_SELECTED_CHANNEL, (msg) => this.handleMessage(msg), { scope: APPLICATION_SCOPE });
+        this.filtersJSON = JSON.stringify(this.filters); 
     }
 
     handleMessage(msg) {
@@ -154,37 +161,34 @@ export default class TransactionDataGrid extends LightningElement {
         else if (msg.action === 'fraud_txn' && msg.transactionId) this.processUpdates([msg.transactionId], 'Fraudulent');
     }
 
-    @wire(getTransactions)
+    // --- Wire Methods ---
+    @wire(getFilterOptions)
+    wiredFilterOptions({ error, data }) {
+        if (data) {
+            this.allTxnIdOptions = data.Transaction_ID__c || [];
+            this.allProductOptions = data.Product_Code__c || [];
+            this.allCustomerOptions = data.Customer_ID__c || [];
+            this.allStoreOptions = data.Store_Location__c || [];
+        } else if (error) {
+            this.dispatchEvent(new ShowToastEvent({ title: 'Error loading filters', message: error.body?.message || error.message, variant: 'error' }));
+        }
+    }
+
+    @wire(getPaginatedTransactions, { pageSize: '$pageSize', pageNumber: '$currentPage', filtersJSON: '$filtersJSON', sortsJSON: '$sortsJSON' })
     wiredTransactions(result) {
         this.wiredTransactionResult = result;
         if (result.data) {
-            this.allData = result.data.map(row => ({
+            this.totalRecords = result.data.totalItemCount;
+            this.paginatedData = result.data.records.map(row => ({
                 ...row,
                 Masked_Card_Number__c: row.Card__r ? row.Card__r.Masked_Card_Number__c : '',
                 Customer_ID__c: row.Card__r ? row.Card__r.Customer_ID__c : '',
                 statusTableClass: STATUS_TABLE_CLASSES[row.Status__c] || '',
                 statusModalClass: STATUS_MODAL_CLASSES[row.Status__c] || ''
             }));
-            this.extractUniqueOptions();
-            this.processDataEngine();
         } else if (result.error) {
             this.dispatchEvent(new ShowToastEvent({ title: 'Error', message: result.error.body?.message || result.error.message, variant: 'error' }));
         }
-    }
-
-    extractUniqueOptions() {
-        const txnIds = new Set(); const products = new Set(); const customers = new Set(); const stores = new Set();
-        this.allData.forEach(txn => {
-            if (txn.Transaction_ID__c) txnIds.add(txn.Transaction_ID__c);
-            if (txn.Product_Code__c) products.add(txn.Product_Code__c);
-            if (txn.Customer_ID__c) customers.add(txn.Customer_ID__c);
-            if (txn.Store_Location__c) stores.add(txn.Store_Location__c);
-        });
-        
-        this.allTxnIdOptions = Array.from(txnIds).sort();
-        this.allProductOptions = Array.from(products).sort();
-        this.allCustomerOptions = Array.from(customers).sort();
-        this.allStoreOptions = Array.from(stores).sort();
     }
 
     // --- SORT POPOVER LOGIC ---
@@ -250,14 +254,15 @@ export default class TransactionDataGrid extends LightningElement {
 
     applySorts() {
         this.activeSorts = this.draftSorts.filter(s => s.fieldName); 
+        this.sortsJSON = JSON.stringify(this.activeSorts);
         this.isSortPopupOpen = false;
-        this.processDataEngine();
+        this.currentPage = 1;
     }
 
     handleRemoveSort(event) { 
         this.activeSorts.splice(event.target.name, 1); 
         this.activeSorts = [...this.activeSorts]; 
-        this.processDataEngine(); 
+        this.sortsJSON = JSON.stringify(this.activeSorts);
     }
 
 
@@ -327,70 +332,36 @@ export default class TransactionDataGrid extends LightningElement {
 
     applyFilters() {
         this.filters = { ...this.draftFilters };
+        this.filtersJSON = JSON.stringify(this.filters);
         this.isFilterPopupOpen = false;
         this.currentPage = 1;
-        this.processDataEngine();
     }
 
     handleRemoveFilter(event) {
         const fieldName = event.target.name;
         this.filters = { ...this.filters, [fieldName]: (fieldName.includes('Amount') || fieldName.includes('Date')) ? null : [] };
         this.draftFilters = { ...this.filters };
+        this.filtersJSON = JSON.stringify(this.filters);
         this.currentPage = 1;
-        this.processDataEngine();
     }
 
-    // --- Data Processing Engine ---
-    processDataEngine() {
-        let result = this.allData.filter(row => {
-            let match = true;
-
-            const arrayFields = ['Status__c', 'Transaction_ID__c', 'Product_Code__c', 'Customer_ID__c', 'Store_Location__c'];
-            arrayFields.forEach(field => {
-                if (this.filters[field] && this.filters[field].length > 0) {
-                    match = match && this.filters[field].includes(row[field]);
-                }
-            });
-            
-            if (this.filters.minAmount != null && this.filters.minAmount !== '') match = match && row.Amount__c >= parseFloat(this.filters.minAmount);
-            if (this.filters.maxAmount != null && this.filters.maxAmount !== '') match = match && row.Amount__c <= parseFloat(this.filters.maxAmount);
-
-            if (this.filters.minDate) {
-                let minD = new Date(this.filters.minDate); minD.setHours(0,0,0,0);
-                match = match && new Date(row.Transaction_Date__c) >= minD;
-            }
-            if (this.filters.maxDate) {
-                let maxD = new Date(this.filters.maxDate); maxD.setHours(23,59,59,999);
-                match = match && new Date(row.Transaction_Date__c) <= maxD;
-            }
-            return match;
-        });
-
-        if (this.activeSorts.length > 0) {
-            result.sort((a, b) => {
-                for (let sort of this.activeSorts) {
-                    let valA = a[sort.fieldName]; let valB = b[sort.fieldName];
-                    if (valA === valB) continue; 
-                    let isAsc = sort.direction === 'asc';
-                    if (valA == null) return isAsc ? -1 : 1;
-                    if (valB == null) return isAsc ? 1 : -1;
-                    return (valA < valB) ? (isAsc ? -1 : 1) : (isAsc ? 1 : -1);
-                }
-                return 0;
-            });
-        }
-
-        this.filteredData = result;
-        this.updatePagination();
+    // --- Pagination Actions ---
+    handlePageSizeChange(event) { 
+        this.pageSize = parseInt(event.detail.value, 10); 
+        this.currentPage = 1; 
+    }
+    
+    handlePrevPage() { 
+        if (this.currentPage > 1) this.currentPage--; 
+    }
+    
+    handleNextPage() { 
+        if (this.currentPage < this.totalPages) this.currentPage++; 
     }
 
-    handlePageSizeChange(event) { this.pageSize = parseInt(event.detail.value, 10); this.currentPage = 1; this.updatePagination(); }
-    handlePrevPage() { if (this.currentPage > 1) { this.currentPage--; this.updatePagination(); } }
-    handleNextPage() { if (this.currentPage < this.totalPages) { this.currentPage++; this.updatePagination(); } }
-    updatePagination() { const start = (this.currentPage - 1) * this.pageSize; this.paginatedData = this.filteredData.slice(start, start + this.pageSize); }
     handleRowSelection(event) { this.selectedRows = event.detail.selectedRows.map(row => row.Id); }
     
-    // --- Actions ---
+    // --- Data Actions ---
     handleRowAction(event) {
         const action = event.detail.action.name; const row = event.detail.row;
         switch (action) {

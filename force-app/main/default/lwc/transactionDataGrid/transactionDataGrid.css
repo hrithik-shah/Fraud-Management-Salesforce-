@@ -297,7 +297,6 @@
     --lwc-spacingXSmall: 0.75rem; 
 }
 
-/* Footer Pagination */
 .footer-section {
     background-color: #ffffff;
     color: #64748b;
@@ -309,7 +308,6 @@
     --sds-c-input-radius-border: 6px;
 }
 
-/* Modal Status Badges */
 .badge {
     padding: 4px 12px;
     border-radius: 12px;

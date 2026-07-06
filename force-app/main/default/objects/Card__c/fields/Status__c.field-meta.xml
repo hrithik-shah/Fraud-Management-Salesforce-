@@ -29,6 +29,12 @@
                 <default>false</default>
                 <label>Temporary</label>
             </value>
+            <value>
+                <fullName>Flagged</fullName>
+                <default>false</default>
+                <isActive>false</isActive>
+                <label>Flagged</label>
+            </value>
         </valueSetDefinition>
     </valueSet>
 </CustomField>
