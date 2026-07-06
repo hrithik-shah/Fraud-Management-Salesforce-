@@ -1,9 +1,4 @@
-:host {
-    display: block;
-}
-
-/* Subtracts the header (160px) AND the Transaction Details card above it (~200px) 
-  so it perfectly fits the remaining space on the screen.
-*/
-.scroll-container {
+.table-container {
+    height: 350px; 
+    /* Ensures it doesn't blow out the page length under the details component */
 }

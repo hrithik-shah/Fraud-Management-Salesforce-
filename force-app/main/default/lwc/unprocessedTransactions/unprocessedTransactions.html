@@ -10,7 +10,6 @@
         </div>
 
         <div class="slds-grid slds-wrap slds-p-around_medium">
-            
             <div class="slds-col slds-size_1-of-4 slds-p-horizontal_x-small slds-m-bottom_small">
                 <div class="slds-form-element">
                     <label class="slds-form-element__label">Transaction ID</label>
@@ -21,7 +20,6 @@
                                     <input type="text" class="slds-input slds-combobox__input" name="txnId"
                                         placeholder="Select ID..." value={filters.txnId}
                                         oninput={handleSearch} onclick={openDropdown} onblur={closeDropdown} autocomplete="off" />
-                                    
                                     <template if:false={filters.txnId}>
                                         <lightning-icon icon-name="utility:down" size="x-small" class="slds-input__icon slds-input__icon_right"></lightning-icon>
                                     </template>
@@ -58,7 +56,6 @@
                                     <input type="text" class="slds-input slds-combobox__input" name="product"
                                         placeholder="Select Product..." value={filters.product}
                                         oninput={handleSearch} onclick={openDropdown} onblur={closeDropdown} autocomplete="off" />
-                                    
                                     <template if:false={filters.product}>
                                         <lightning-icon icon-name="utility:down" size="x-small" class="slds-input__icon slds-input__icon_right"></lightning-icon>
                                     </template>
@@ -95,7 +92,6 @@
                                     <input type="text" class="slds-input slds-combobox__input" name="store"
                                         placeholder="Select Store..." value={filters.store}
                                         oninput={handleSearch} onclick={openDropdown} onblur={closeDropdown} autocomplete="off" />
-                                    
                                     <template if:false={filters.store}>
                                         <lightning-icon icon-name="utility:down" size="x-small" class="slds-input__icon slds-input__icon_right"></lightning-icon>
                                     </template>
@@ -132,7 +128,6 @@
                                     <input type="text" class="slds-input slds-combobox__input" name="masked"
                                         placeholder="Select Card..." value={filters.masked}
                                         oninput={handleSearch} onclick={openDropdown} onblur={closeDropdown} autocomplete="off" />
-                                    
                                     <template if:false={filters.masked}>
                                         <lightning-icon icon-name="utility:down" size="x-small" class="slds-input__icon slds-input__icon_right"></lightning-icon>
                                     </template>
@@ -161,7 +156,6 @@
             
             <lightning-input type="number" name="minAmt" label="Min Amount" value={filters.minAmt} onchange={handleFilterChange} class="slds-col slds-size_1-of-5 slds-p-horizontal_x-small slds-m-bottom_small"></lightning-input>
             <lightning-input type="number" name="maxAmt" label="Max Amount" value={filters.maxAmt} onchange={handleFilterChange} class="slds-col slds-size_1-of-5 slds-p-horizontal_x-small slds-m-bottom_small"></lightning-input>
-            
             <lightning-input type="date" name="dateFrom" label="From Date" value={filters.dateFrom} onchange={handleFilterChange} class="slds-col slds-size_1-of-5 slds-p-horizontal_x-small slds-m-bottom_small"></lightning-input>
             <lightning-input type="date" name="dateTo" label="To Date" value={filters.dateTo} onchange={handleFilterChange} class="slds-col slds-size_1-of-5 slds-p-horizontal_x-small slds-m-bottom_small"></lightning-input>
 
@@ -173,22 +167,23 @@
                     </div>
                 </div>
             </div>
-
         </div>
 
-        <div class="slds-m-around_medium">
-            <template if:true={transactions}>
+        <div class="slds-m-around_medium scroll-container">
+            <template if:true={error}>
+                <div class="slds-text-color_error slds-m-bottom_small">Error loading transactions: {error}</div>
+            </template>
+            <div style="height: 500px;"> 
                 <lightning-datatable
                     key-field="Id"
                     data={transactions}
                     columns={columns}
+                    enable-infinite-loading={enableInfiniteLoading}
+                    onloadmore={loadMoreData}
                     onrowaction={handleRowAction}
                     onrowselection={handleRowSelection}>
                 </lightning-datatable>
-            </template>
-            <template if:true={error}>
-                <div class="slds-text-color_error">Error loading transactions: {error}</div>
-            </template>
+            </div>
         </div>
     </lightning-card>
 </template>

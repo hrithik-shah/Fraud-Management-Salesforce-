@@ -6,6 +6,8 @@ import { getRecord, getFieldValue } from 'lightning/uiRecordApi';
 import CUSTOMER_ID_FIELD from '@salesforce/schema/Transaction__c.Card__r.Customer_ID__c';
 import MASKED_CARD_FIELD from '@salesforce/schema/Transaction__c.Card__r.Masked_Card_Number__c';
 
+const FIELDS = [CUSTOMER_ID_FIELD, MASKED_CARD_FIELD];
+
 export default class TransactionDetails extends LightningElement {
     transactionId;
     subscription = null;

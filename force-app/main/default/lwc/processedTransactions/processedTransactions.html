@@ -1,15 +1,17 @@
 <template>
     <lightning-card title="Processed Transactions" icon-name="standard:task2">
         <div class="slds-m-around_medium">
-            <template if:true={transactions}>
+            <div class="table-container">
                 <lightning-datatable
                     key-field="Id"
                     data={transactions}
                     columns={columns}
                     onrowaction={handleRowAction} 
-                    hide-checkbox-column>
+                    hide-checkbox-column
+                    enable-infinite-loading={enableInfiniteLoading}
+                    onloadmore={loadMoreData}>
                 </lightning-datatable>
-            </template>
+            </div>
         </div>
     </lightning-card>
 </template>

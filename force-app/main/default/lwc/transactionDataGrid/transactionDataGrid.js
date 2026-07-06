@@ -83,7 +83,7 @@ export default class TransactionDataGrid extends LightningElement {
     get totalPages() { return Math.ceil(this.totalRecords / this.pageSize) || 1; }
     get isFirstPage() { return this.currentPage === 1; }
     get isLastPage() { return this.currentPage >= this.totalPages; }
-    get pageSizeOptions() { return [{ label: '10', value: '10' }, { label: '25', value: '25' }, { label: '50', value: '50' }, { label: '100', value: '100' }]; }
+    get pageSizeOptions() { return [{ label: '10', value: '10' }, { label: '20', value: '20' }, { label: '50', value: '50' }, { label: '100', value: '100' }]; }
     get sortableColumns() { return this.columns.filter(c => c.fieldName && !c.fieldName.includes('statusTableClass')).map(c => ({ label: c.label, value: c.fieldName })); }
 
     get filterButtonClass() { return this.isFilterPopupOpen || this.activeFilterTags.length > 0 ? 'dribbble-btn active-btn' : 'dribbble-btn'; }

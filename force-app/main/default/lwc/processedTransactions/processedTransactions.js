@@ -1,7 +1,6 @@
 import { LightningElement, wire, track } from 'lwc';
-import getProcessedTransactions from '@salesforce/apex/PartnerTransactionController.getProcessedTransactions';
+import getPaginatedTransactions from '@salesforce/apex/TransactionPaginationController.getPaginatedTransactions';
 import updateTransactionStatuses from '@salesforce/apex/PartnerTransactionController.updateTransactionStatuses';
-import { refreshApex } from '@salesforce/apex';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import { publish, subscribe, MessageContext, APPLICATION_SCOPE } from 'lightning/messageService';
 import TRANSACTION_SELECTED_CHANNEL from '@salesforce/messageChannel/TransactionSelected__c';
@@ -25,9 +24,17 @@ const COLUMNS = [
 
 export default class ProcessedTransactions extends LightningElement {
     columns = COLUMNS;
-    @track transactions;
+    @track transactions = [];
     
-    wiredTransactionsResult; 
+    pageSize = 50;
+    currentPage = 1;
+    totalRecords = 0;
+    @track enableInfiniteLoading = true;
+    isLoading = false;
+    
+    filtersJSON = JSON.stringify({ Status__c: ['Approved', 'Cancelled', 'Fraudulent'] });
+    sortsJSON = '[]';
+
     updateSubscription = null;
 
     @wire(MessageContext)
@@ -38,23 +45,55 @@ export default class ProcessedTransactions extends LightningElement {
             this.messageContext,
             TRANSACTION_UPDATED_CHANNEL,
             () => {
-                if (this.wiredTransactionsResult) {
-                    refreshApex(this.wiredTransactionsResult);
-                }
+                this.refreshData();
             },
             { scope: APPLICATION_SCOPE } 
         );
+        
+        this.loadMoreData();
     }
 
-    @wire(getProcessedTransactions)
-    wiredTransactions(result) {
-        this.wiredTransactionsResult = result; 
+    refreshData() {
+        this.transactions = [];
+        this.currentPage = 1;
+        this.totalRecords = 0;
+        this.enableInfiniteLoading = true;
+        this.loadMoreData();
+    }
+
+    loadMoreData(event) {
+        if (this.isLoading) return;
         
-        if (result.data) {
-            this.transactions = result.data;
-        } else if (result.error) {
-            console.error('Error fetching processed transactions', result.error);
-        }
+        // CAPTURE TARGET SYNCHRONOUSLY
+        const dataTable = event ? event.target : null;
+        
+        this.isLoading = true;
+        if (dataTable) { dataTable.isLoading = true; }
+
+        getPaginatedTransactions({ 
+            pageSize: this.pageSize, 
+            pageNumber: this.currentPage, 
+            filtersJSON: this.filtersJSON, 
+            sortsJSON: this.sortsJSON 
+        })
+        .then(result => {
+            this.totalRecords = result.totalItemCount;
+            this.transactions = [...this.transactions, ...result.records];
+            
+            if (this.transactions.length >= this.totalRecords) {
+                this.enableInfiniteLoading = false;
+            }
+
+            this.currentPage++;
+            this.isLoading = false;
+            
+            // USE CAPTURED TARGET TO TURN OFF SPINNER
+            if (dataTable) { dataTable.isLoading = false; }
+        })
+        .catch(error => {
+            this.isLoading = false;
+            if (dataTable) { dataTable.isLoading = false; }
+        });
     }
 
     handleRowAction(event) {
@@ -84,8 +123,6 @@ export default class ProcessedTransactions extends LightningElement {
                 );
                 
                 publish(this.messageContext, TRANSACTION_UPDATED_CHANNEL, {});
-                
-                return refreshApex(this.wiredTransactionsResult);
             })
             .catch(error => {
                 this.dispatchEvent(
