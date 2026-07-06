@@ -38,26 +38,22 @@ export default class TransactionDataGrid extends LightningElement {
     
     @track paginatedData = [];
     @track totalRecords = 0;
-    selectedRows = [];
+    @track globalSelectedRows = [];
     wiredTransactionResult;
     subscription = null;
 
-    // Reactive parameters for server-side logic
     currentPage = 1; 
     pageSize = 10;
     @track filtersJSON = '{}';
     @track sortsJSON = '[]';
 
-    // Popover States
     @track isFilterPopupOpen = false;
     @track isSortPopupOpen = false;
     @track openDropdownName = ''; 
     
-    // Sort States
     @track activeSorts = []; 
     @track draftSorts = [];
 
-    // Filter States
     @track filters = { 
         Status__c: ['Pending'], 
         Transaction_ID__c: [], 
@@ -77,8 +73,14 @@ export default class TransactionDataGrid extends LightningElement {
 
     @wire(MessageContext) messageContext;
 
-    // --- Standard Getters ---
-    get isBulkDisabled() { return this.selectedRows.length === 0; }
+    get currentPageSelectedRows() {
+        if (!this.paginatedData) return [];
+        const currentPageIds = this.paginatedData.map(row => row.Id);
+        return this.globalSelectedRows.filter(id => currentPageIds.includes(id));
+    }
+
+    get isBulkDisabled() { return this.currentPageSelectedRows.length === 0; }
+    
     get pageSizeStr() { return this.pageSize.toString(); }
     get totalPages() { return Math.ceil(this.totalRecords / this.pageSize) || 1; }
     get isFirstPage() { return this.currentPage === 1; }
@@ -91,7 +93,6 @@ export default class TransactionDataGrid extends LightningElement {
     get hasActiveFiltersOrSorts() { return this.activeFilterTags.length > 0 || this.activeSorts.length > 0; }
     get hasDraftSorts() { return this.draftSorts.length > 0; }
 
-    // --- Custom Multi-Select Dropdown Getters ---
     get statusDropdownClass() { return `slds-combobox slds-dropdown-trigger slds-dropdown-trigger_click ${this.openDropdownName === 'Status__c' ? 'slds-is-open' : ''}`; }
     get txnIdDropdownClass() { return `slds-combobox slds-dropdown-trigger slds-dropdown-trigger_click ${this.openDropdownName === 'Transaction_ID__c' ? 'slds-is-open' : ''}`; }
     get productDropdownClass() { return `slds-combobox slds-dropdown-trigger slds-dropdown-trigger_click ${this.openDropdownName === 'Product_Code__c' ? 'slds-is-open' : ''}`; }
@@ -131,7 +132,6 @@ export default class TransactionDataGrid extends LightningElement {
     get customerOptionsMapped() { return this.filterAndMapOptions(this.allCustomerOptions, 'Customer_ID__c'); }
     get storeOptionsMapped() { return this.filterAndMapOptions(this.allStoreOptions, 'Store_Location__c'); }
 
-    // --- Dynamic Tags ---
     get activeFilterTags() {
         let tags = [];
         const f = this.filters;
@@ -161,7 +161,6 @@ export default class TransactionDataGrid extends LightningElement {
         else if (msg.action === 'fraud_txn' && msg.transactionId) this.processUpdates([msg.transactionId], 'Fraudulent');
     }
 
-    // --- Wire Methods ---
     @wire(getFilterOptions)
     wiredFilterOptions({ error, data }) {
         if (data) {
@@ -186,12 +185,14 @@ export default class TransactionDataGrid extends LightningElement {
                 statusTableClass: STATUS_TABLE_CLASSES[row.Status__c] || '',
                 statusModalClass: STATUS_MODAL_CLASSES[row.Status__c] || ''
             }));
+            
+            this.globalSelectedRows = [...this.globalSelectedRows];
+
         } else if (result.error) {
             this.dispatchEvent(new ShowToastEvent({ title: 'Error', message: result.error.body?.message || result.error.message, variant: 'error' }));
         }
     }
 
-    // --- SORT POPOVER LOGIC ---
     toggleSortPopup() {
         this.isSortPopupOpen = !this.isSortPopupOpen;
         if (this.isSortPopupOpen) {
@@ -265,8 +266,6 @@ export default class TransactionDataGrid extends LightningElement {
         this.sortsJSON = JSON.stringify(this.activeSorts);
     }
 
-
-    // --- FILTER POPOVER LOGIC ---
     toggleFilterPopup() {
         this.isFilterPopupOpen = !this.isFilterPopupOpen;
         if (this.isFilterPopupOpen) {
@@ -345,7 +344,6 @@ export default class TransactionDataGrid extends LightningElement {
         this.currentPage = 1;
     }
 
-    // --- Pagination Actions ---
     handlePageSizeChange(event) { 
         this.pageSize = parseInt(event.detail.value, 10); 
         this.currentPage = 1; 
@@ -359,9 +357,20 @@ export default class TransactionDataGrid extends LightningElement {
         if (this.currentPage < this.totalPages) this.currentPage++; 
     }
 
-    handleRowSelection(event) { this.selectedRows = event.detail.selectedRows.map(row => row.Id); }
+    handleRowSelection(event) { 
+        if (!event.detail.config) {
+            return;
+        }
+
+        const currentPageIds = this.paginatedData.map(row => row.Id);
+        const selectedOnPage = event.detail.selectedRows.map(row => row.Id);
+        
+        let updatedGlobal = this.globalSelectedRows.filter(id => !currentPageIds.includes(id));
+        updatedGlobal = [...updatedGlobal, ...selectedOnPage];
+        
+        this.globalSelectedRows = updatedGlobal;
+    }
     
-    // --- Data Actions ---
     handleRowAction(event) {
         const action = event.detail.action.name; const row = event.detail.row;
         switch (action) {
@@ -371,19 +380,25 @@ export default class TransactionDataGrid extends LightningElement {
             case 'fraud_txn': this.processUpdates([row.Id], 'Fraudulent'); break;
         }
     }
-    handleBulkApprove() { this.processUpdates(this.selectedRows, 'Approved'); }
-    handleBulkCancel() { this.processUpdates(this.selectedRows, 'Cancelled'); }
-    handleBulkFraud() { this.processUpdates(this.selectedRows, 'Fraudulent'); }
+    
+    handleBulkApprove() { this.processUpdates(this.currentPageSelectedRows, 'Approved'); }
+    handleBulkCancel() { this.processUpdates(this.currentPageSelectedRows, 'Cancelled'); }
+    handleBulkFraud() { this.processUpdates(this.currentPageSelectedRows, 'Fraudulent'); }
 
     processUpdates(recordIds, newStatus) {
+        if (!recordIds || recordIds.length === 0) return;
+        
         updateTransactionStatuses({ transactionIds: recordIds, newStatus: newStatus })
             .then(() => {
                 this.dispatchEvent(new ShowToastEvent({ title: 'Success', message: `${recordIds.length} transaction(s) marked as ${newStatus}.`, variant: 'success' }));
-                this.selectedRows = []; this.template.querySelector('lightning-datatable').selectedRows = [];
+                
+                this.globalSelectedRows = this.globalSelectedRows.filter(id => !recordIds.includes(id));
+                
                 publish(this.messageContext, TRANSACTION_UPDATED_CHANNEL, {});
                 return refreshApex(this.wiredTransactionResult);
             })
             .catch(error => this.dispatchEvent(new ShowToastEvent({ title: 'Error', message: error.body?.message || error.message, variant: 'error' })));
     }
+    
     closeModal() { this.isModalOpen = false; this.selectedRecord = null; }
 }

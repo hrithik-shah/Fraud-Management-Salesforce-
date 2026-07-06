@@ -285,7 +285,8 @@
                 <lightning-datatable 
                     key-field="Id" 
                     data={paginatedData} 
-                    columns={columns} 
+                    columns={columns}
+                    selected-rows={globalSelectedRows} 
                     onrowselection={handleRowSelection} 
                     onrowaction={handleRowAction} 
                     resize-column-disabled
