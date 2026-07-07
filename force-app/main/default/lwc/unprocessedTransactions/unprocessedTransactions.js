@@ -8,12 +8,12 @@ import TRANSACTION_SELECTED_CHANNEL from '@salesforce/messageChannel/Transaction
 import TRANSACTION_UPDATED_CHANNEL from '@salesforce/messageChannel/TransactionUpdated__c'; 
 
 const COLUMNS = [
-    { label: 'Transaction ID', fieldName: 'Transaction_ID__c' },
-    { label: 'Product Code', fieldName: 'Product_Code__c' },
-    { label: 'Store Location', fieldName: 'Store_Location__c' },
+    { label: 'Transaction ID', fieldName: 'Transaction_ID__c', sortable: true },
+    { label: 'Product Code', fieldName: 'Product_Code__c', sortable: true },
+    { label: 'Store Location', fieldName: 'Store_Location__c', sortable: true },
     { label: 'Masked Card', fieldName: 'MaskedCard', type: 'text' },
-    { label: 'Date', fieldName: 'Transaction_Date__c', type: 'date' },
-    { label: 'Amount', fieldName: 'Amount__c', type: 'currency' },
+    { label: 'Date', fieldName: 'Transaction_Date__c', type: 'date', sortable: true },
+    { label: 'Amount', fieldName: 'Amount__c', type: 'currency', sortable: true },
     {
         type: 'action',
         typeAttributes: {
@@ -32,7 +32,9 @@ export default class UnprocessedTransactions extends LightningElement {
     @track transactions = [];
     @track error;
     
-    // Lazy Loading Variables
+    @track sortedBy;
+    @track sortedDirection = 'desc';
+
     pageSize = 50;
     currentPage = 1;
     totalRecords = 0;
@@ -47,7 +49,6 @@ export default class UnprocessedTransactions extends LightningElement {
 
     @track filters = { txnId: '', product: '', store: '', masked: '', minAmt: null, maxAmt: null, dateFrom: null, dateTo: null };
 
-    // --- Searchable Dropdown Trackers ---
     @track allTxnIdOptions = [];
     @track allProductOptions = [];
     @track allStoreOptions = [];
@@ -81,7 +82,7 @@ export default class UnprocessedTransactions extends LightningElement {
             (message) => this.handleMessage(message),
             { scope: APPLICATION_SCOPE }
         );
-        this.applyFilters(); // Kickoff initial fetch
+        this.applyFilters();
     }
 
     handleMessage(message) {
@@ -105,14 +106,16 @@ export default class UnprocessedTransactions extends LightningElement {
     loadMoreData(event) {
         if (this.isLoading) return;
         
+        const dataTable = event ? event.target : null;
+
         if (this.transactions.length >= this.totalRecords && this.totalRecords > 0) {
             this.enableInfiniteLoading = false;
-            if (event) { event.target.isLoading = false; }
+            if (dataTable) { dataTable.isLoading = false; }
             return;
         }
 
         this.isLoading = true;
-        if (event) { event.target.isLoading = true; }
+        if (dataTable) { dataTable.isLoading = true; }
 
         getPaginatedTransactions({ 
             pageSize: this.pageSize, 
@@ -130,6 +133,10 @@ export default class UnprocessedTransactions extends LightningElement {
 
             // Append new records
             this.transactions = [...this.transactions, ...newRecords];
+
+            if (this.transactions.length >= this.totalRecords) {
+                this.enableInfiniteLoading = false;
+            }
             
             // Set initial selected item context on first load
             if (this.currentPage === 1 && this.transactions.length > 0) {
@@ -144,16 +151,34 @@ export default class UnprocessedTransactions extends LightningElement {
             this.currentPage++;
             this.isLoading = false;
             this.error = undefined;
-            if (event) { event.target.isLoading = false; }
+            if (dataTable) { dataTable.isLoading = false; }
         })
         .catch(err => {
             this.error = err.body ? err.body.message : err.message;
             this.isLoading = false;
-            if (event) { event.target.isLoading = false; }
+            if (dataTable) { dataTable.isLoading = false; }
         });
     }
 
-    // --- Searchable Dropdown Event Handlers ---
+    handleSort(event) {
+        const { fieldName: sortedBy, sortDirection } = event.detail;
+        
+        this.sortedBy = sortedBy;
+        this.sortedDirection = sortDirection;
+
+        const sortObj = [{
+            fieldName: sortedBy,
+            direction: sortDirection
+        }];
+        this.sortsJSON = JSON.stringify(sortObj);
+
+        this.transactions = [];
+        this.currentPage = 1;
+        this.totalRecords = 0;
+        this.enableInfiniteLoading = true;
+        this.loadMoreData();
+    }
+
     openDropdown(event) {
         const name = event.target.name;
         if (name === 'txnId') { this.txnIdOptions = this.allTxnIdOptions; this.showTxnIdDropdown = true; }
@@ -228,9 +253,7 @@ export default class UnprocessedTransactions extends LightningElement {
         this.applyFilters();
     }
 
-    // --- JSON Builder for Apex ---
     applyFilters() {
-        // We ALWAYS force Status to be Pending only for this component.
         const filterObj = { Status__c: ['Pending'] };
 
         if (this.filters.txnId) filterObj.Transaction_ID__c = [this.filters.txnId];
@@ -245,7 +268,6 @@ export default class UnprocessedTransactions extends LightningElement {
 
         this.filtersJSON = JSON.stringify(filterObj);
 
-        // Reset scroll variables and clear DOM for fresh fetch
         this.transactions = [];
         this.currentPage = 1;
         this.totalRecords = 0;
@@ -275,13 +297,11 @@ export default class UnprocessedTransactions extends LightningElement {
     handleBulkCancel() { this.processUpdates(this.selectedRows, 'Cancelled'); }
     handleBulkFraud() { this.processUpdates(this.selectedRows, 'Fraudulent'); }
 
-    // --- Optimized Action Processor for Infinite Scroll ---
     processUpdates(recordIds, newStatus) {
         updateTransactionStatuses({ transactionIds: recordIds, newStatus: newStatus })
             .then(() => {
                 this.dispatchEvent(new ShowToastEvent({ title: 'Success', message: `${recordIds.length} transaction(s) marked as ${newStatus}.`, variant: 'success' }));
                 
-                // Surgically remove the rows from the DOM instead of refreshing everything, keeping scroll intact.
                 this.transactions = this.transactions.filter(txn => !recordIds.includes(txn.Id));
                 this.totalRecords = this.totalRecords - recordIds.length;
                 

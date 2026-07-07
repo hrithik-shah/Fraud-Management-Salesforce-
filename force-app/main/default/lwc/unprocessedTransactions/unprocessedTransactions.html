@@ -178,6 +178,9 @@
                     key-field="Id"
                     data={transactions}
                     columns={columns}
+                    sorted-by={sortedBy}
+                    sorted-direction={sortedDirection}
+                    onsort={handleSort}
                     enable-infinite-loading={enableInfiniteLoading}
                     onloadmore={loadMoreData}
                     onrowaction={handleRowAction}
