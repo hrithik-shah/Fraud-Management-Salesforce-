@@ -6,12 +6,15 @@ private class PartnerDashboardControllerTest {
         Account acc = new Account(Name = 'Test Account');
         insert acc;
 
+        Contact customer = new Contact(LastName = 'Dash User', Customer_ID__c = 'CUST-DB');
+        insert customer;
+
         Card__c card = new Card__c(
             Name = 'Dashboard Test Card', 
             Expiration_Date__c = Date.today().addYears(2), 
             Cardholder_Name__c = 'Dash User', 
             Card_Number_Last_4__c = 5555, 
-            Customer_ID__c = 'CUST-DB',
+            Customer_Contact__c = customer.Id,
             Status__c = 'Active'
         );
         insert card;

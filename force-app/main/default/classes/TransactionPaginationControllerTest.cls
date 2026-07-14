@@ -6,12 +6,15 @@ private class TransactionPaginationControllerTest {
         Account acc = new Account(Name = 'Test Account');
         insert acc;
 
+        Contact customer = new Contact(LastName = 'Partner User', Customer_ID__c = 'CUST-PT');
+        insert customer;
+
         Card__c testCard = new Card__c(
             Name = 'Partner Test Card', 
             Expiration_Date__c = Date.today().addYears(2), 
             Cardholder_Name__c = 'Partner User', 
             Card_Number_Last_4__c = 6666, 
-            Customer_ID__c = 'CUST-PT',
+            Customer_Contact__c = customer.Id,
             Status__c = 'Active'
         );
         insert testCard;

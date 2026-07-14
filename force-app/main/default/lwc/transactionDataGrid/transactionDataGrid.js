@@ -181,7 +181,7 @@ export default class TransactionDataGrid extends LightningElement {
             this.paginatedData = result.data.records.map(row => ({
                 ...row,
                 Masked_Card_Number__c: row.Card__r ? row.Card__r.Masked_Card_Number__c : '',
-                Customer_ID__c: row.Card__r ? row.Card__r.Customer_ID__c : '',
+                Customer_ID__c: row.Card__r && row.Card__r.Customer_Contact__r ? row.Card__r.Customer_Contact__r.Customer_ID__c : '',
                 statusTableClass: STATUS_TABLE_CLASSES[row.Status__c] || '',
                 statusModalClass: STATUS_MODAL_CLASSES[row.Status__c] || ''
             }));

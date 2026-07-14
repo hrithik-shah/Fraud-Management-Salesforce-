@@ -6,11 +6,14 @@ private class StolenCardSecurityActionTest {
         Account acc = new Account(Name = 'Test Account');
         insert acc;
 
+        Contact customer = new Contact(LastName = 'John Doe', Customer_ID__c = 'CUST-SEC-01');
+        insert customer;
+
         Card__c originalCard = new Card__c(
             Name = 'John Doe Visa',
             Expiration_Date__c = Date.today().addYears(2), 
             Cardholder_Name__c = 'John Doe', 
-            Customer_ID__c = 'CUST-SEC-01',
+            Customer_Contact__c = customer.Id,
             Card_Number_Last_4__c = 5555,
             Status__c = 'Active'
         );

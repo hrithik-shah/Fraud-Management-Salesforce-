@@ -10,7 +10,7 @@ public with sharing class TransactionPaginationController {
         Integer offset = (pageNumber - 1) * pageSize;
         
         // Base Query Strings
-        String selectClause = 'SELECT Id, Transaction_ID__c, Status__c, Amount__c, Transaction_Date__c, Product_Code__c, Store_Location__c, Card__r.Masked_Card_Number__c, Card__r.Customer_ID__c FROM Transaction__c';
+        String selectClause = 'SELECT Id, Transaction_ID__c, Status__c, Amount__c, Transaction_Date__c, Product_Code__c, Store_Location__c, Card__r.Masked_Card_Number__c, Card__r.Customer_Contact__r.Customer_ID__c FROM Transaction__c';
         String countClause = 'SELECT COUNT() FROM Transaction__c';
         String whereClause = buildWhereClause(filtersJSON);
         String orderClause = buildOrderClause(sortsJSON);
@@ -46,7 +46,7 @@ public with sharing class TransactionPaginationController {
         for (AggregateResult ar : [SELECT Store_Location__c FROM Transaction__c WHERE Store_Location__c != null GROUP BY Store_Location__c LIMIT 1000]) {
             options.get('Store_Location__c').add((String)ar.get('Store_Location__c'));
         }
-        for (AggregateResult ar : [SELECT Card__r.Customer_ID__c custId FROM Transaction__c WHERE Card__r.Customer_ID__c != null GROUP BY Card__r.Customer_ID__c LIMIT 1000]) {
+        for (AggregateResult ar : [SELECT Card__r.Customer_Contact__r.Customer_ID__c custId FROM Transaction__c WHERE Card__r.Customer_Contact__r.Customer_ID__c != null GROUP BY Card__r.Customer_Contact__r.Customer_ID__c LIMIT 1000]) {
             options.get('Customer_ID__c').add((String)ar.get('custId'));
         }
         
@@ -77,7 +77,7 @@ public with sharing class TransactionPaginationController {
             if(!custValues.isEmpty()){
                 List<String> stringValues = new List<String>();
                 for(Object val : custValues) { stringValues.add('\'' + String.escapeSingleQuotes((String)val) + '\''); }
-                conditions.add('Card__r.Customer_ID__c IN (' + String.join(stringValues, ',') + ')');
+                conditions.add('Card__r.Customer_Contact__r.Customer_ID__c IN (' + String.join(stringValues, ',') + ')');
             }
         }
 

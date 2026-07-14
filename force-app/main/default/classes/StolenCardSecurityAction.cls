@@ -28,7 +28,7 @@ public with sharing class StolenCardSecurityAction {
         }
         
         Map<Id, Card__c> cardMap = new Map<Id, Card__c>([
-            SELECT Id, Name, Customer_ID__c, Card_Number_Last_4__c, Status__c 
+            SELECT Id, Name, Customer_Contact__c, Card_Number_Last_4__c, Status__c 
             FROM Card__c 
             WHERE Id IN :cardIds
         ]);
@@ -54,7 +54,7 @@ public with sharing class StolenCardSecurityAction {
             
             Card__c tempCard = new Card__c(
                 Name = 'TEMP - ' + originalCard.Name,
-                Customer_ID__c = originalCard.Customer_ID__c,
+                Customer_Contact__c = originalCard.Customer_Contact__c,
                 Original_Card__c = originalCard.Id,
                 Card_Number_Last_4__c = uniqueLast4,
                 Expiration_Date__c = Date.today().addDays(30),

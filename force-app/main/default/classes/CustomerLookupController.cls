@@ -12,7 +12,7 @@ public with sharing class CustomerLookupController {
         
         for (AggregateResult ar : [
             SELECT Customer_ID__c 
-            FROM Card__c 
+            FROM Contact 
             WHERE Customer_ID__c LIKE :searchKey 
             AND Customer_ID__c != null
             GROUP BY Customer_ID__c 

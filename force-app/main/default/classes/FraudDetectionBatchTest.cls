@@ -6,13 +6,16 @@ private class FraudDetectionBatchTest {
         Account acc = new Account(Name = 'Test Account');
         insert acc;
 
+        Contact customer = new Contact(LastName = 'Fraud User', Customer_ID__c = 'CUST-999');
+        insert customer;
+
         Card__c testCard = new Card__c(
             Name = 'Fraud Test Card', 
             Status__c = 'Active', 
             Expiration_Date__c = Date.today().addYears(2), 
             Cardholder_Name__c = 'Fraud User', 
             Card_Number_Last_4__c = 4444, 
-            Customer_ID__c = 'CUST-999'
+            Customer_Contact__c = customer.Id
         );
         insert testCard;
 

@@ -3,7 +3,7 @@ import { subscribe, publish, MessageContext } from 'lightning/messageService';
 import TRANSACTION_SELECTED_CHANNEL from '@salesforce/messageChannel/TransactionSelected__c';
 import { getRecord, getFieldValue } from 'lightning/uiRecordApi';
 
-import CUSTOMER_ID_FIELD from '@salesforce/schema/Transaction__c.Card__r.Customer_ID__c';
+import CUSTOMER_ID_FIELD from '@salesforce/schema/Transaction__c.Card__r.Customer_Contact__r.Customer_ID__c';
 import MASKED_CARD_FIELD from '@salesforce/schema/Transaction__c.Card__r.Masked_Card_Number__c';
 
 const FIELDS = [CUSTOMER_ID_FIELD, MASKED_CARD_FIELD];
