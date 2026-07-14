@@ -3,7 +3,8 @@ import getCards from '@salesforce/apex/EmployeeCardController.getCards';
 import { refreshApex } from '@salesforce/apex';
 
 const COLUMNS = [
-    { label: 'Card Number / ID', fieldName: 'Name' },
+    { label: 'Customer ID', fieldName: 'CustomerId' },
+    { label: 'Masked Card Number', fieldName: 'Masked_Card_Number__c' },
     { label: 'Status', fieldName: 'Status__c' },
     { 
         type: 'action',
@@ -35,9 +36,16 @@ export default class EmployeeCardBrowser extends LightningElement {
     wiredCards(result) {
         this.wiredCardsResult = result;
         if (result.data) {
-            this.cards = result.data;
+            // Flatten the data to handle the cross-object Customer ID field
+            this.cards = result.data.map(record => {
+                return {
+                    ...record,
+                    CustomerId: record.Customer_Contact__r ? record.Customer_Contact__r.Customer_ID__c : 'Unassigned'
+                };
+            });
         } else if (result.error) {
             console.error('Error fetching cards:', result.error);
+            this.cards = [];
         }
     }
 
