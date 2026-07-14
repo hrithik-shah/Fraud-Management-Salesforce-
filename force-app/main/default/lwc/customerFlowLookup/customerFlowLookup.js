@@ -27,7 +27,13 @@ export default class CustomerFlowLookup extends LightningElement {
         if (data) {
             this.searchResults = data;
             this.noResults = data.length === 0 && this.searchTerm.length >= 2;
-            this.showDropdown = this.searchTerm.length >= 2;
+            
+            // FIX: Prevent dropdown from reopening if the user just selected an item
+            if (this.searchTerm === this.selectedCustomerId) {
+                this.showDropdown = false;
+            } else {
+                this.showDropdown = this.searchTerm.length >= 2;
+            }
         } else if (error) {
             console.error('Error fetching Customer IDs:', error);
             this.searchResults = [];
@@ -41,6 +47,11 @@ export default class CustomerFlowLookup extends LightningElement {
         
         this.delayTimeout = setTimeout(() => {
             this.searchTerm = searchVal;
+            
+            if (this.selectedCustomerId && this.searchTerm !== this.selectedCustomerId) {
+                this.selectedCustomerId = '';
+                this.notifyFlow();
+            }
             
             if (!this.searchTerm) {
                 this.selectedCustomerId = '';
@@ -60,7 +71,7 @@ export default class CustomerFlowLookup extends LightningElement {
     }
 
     handleFocus() {
-        if (this.searchTerm.length >= 2) {
+        if (this.searchTerm.length >= 2 && this.searchTerm !== this.selectedCustomerId) {
             this.showDropdown = true;
         }
     }
