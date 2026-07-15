@@ -131,14 +131,12 @@ export default class UnprocessedTransactions extends LightningElement {
                 MaskedCard: row.Card__r ? row.Card__r.Masked_Card_Number__c : ''
             }));
 
-            // Append new records
             this.transactions = [...this.transactions, ...newRecords];
 
             if (this.transactions.length >= this.totalRecords) {
                 this.enableInfiniteLoading = false;
             }
             
-            // Set initial selected item context on first load
             if (this.currentPage === 1 && this.transactions.length > 0) {
                 const isValid = this.transactions.some(txn => txn.Id === this.currentSelectedId);
                 if (!isValid) this.currentSelectedId = this.transactions[0].Id;

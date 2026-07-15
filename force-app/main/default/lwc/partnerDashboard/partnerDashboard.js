@@ -17,7 +17,7 @@ export default class PartnerDashboard extends LightningElement {
         avgTransactionValue: 0,
         topStores: [],
         topProducts: [],
-        // repeatCustomerPercent: 0,
+        // repeatCustomerPercent: 0, TODO
     };
 
     @wire(getDashboardMetrics)

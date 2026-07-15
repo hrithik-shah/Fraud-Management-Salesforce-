@@ -9,7 +9,6 @@ public with sharing class TransactionPaginationController {
     public static PagedResult getPaginatedTransactions(Integer pageSize, Integer pageNumber, String filtersJSON, String sortsJSON) {
         Integer offset = (pageNumber - 1) * pageSize;
         
-        // Base Query Strings
         String selectClause = 'SELECT Id, Transaction_ID__c, Status__c, Amount__c, Transaction_Date__c, Product_Code__c, Store_Location__c, Card__r.Masked_Card_Number__c, Card__r.Customer_Contact__r.Customer_ID__c FROM Transaction__c';
         String countClause = 'SELECT COUNT() FROM Transaction__c';
         String whereClause = buildWhereClause(filtersJSON);
@@ -18,10 +17,8 @@ public with sharing class TransactionPaginationController {
 
         PagedResult result = new PagedResult();
         
-        // 1. Get Total Count for Pagination Math
         result.totalItemCount = Database.countQuery(countClause + whereClause);
         
-        // 2. Get Actual Page Records
         result.records = Database.query(selectClause + whereClause + orderClause + limitOffset);
         
         return result;
@@ -53,7 +50,6 @@ public with sharing class TransactionPaginationController {
         return options;
     }
 
-    // Helper: Build WHERE clause from JSON
     private static String buildWhereClause(String filtersJSON) {
         if (String.isBlank(filtersJSON) || filtersJSON == '{}') return '';
         
@@ -98,7 +94,6 @@ public with sharing class TransactionPaginationController {
         return conditions.isEmpty() ? '' : ' WHERE ' + String.join(conditions, ' AND ');
     }
 
-    // Helper: Build ORDER BY clause from JSON
     private static String buildOrderClause(String sortsJSON) {
         if (String.isBlank(sortsJSON) || sortsJSON == '[]') return ' ORDER BY Transaction_Date__c DESC'; 
         

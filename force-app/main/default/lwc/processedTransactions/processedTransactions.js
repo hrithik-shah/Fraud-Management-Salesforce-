@@ -64,7 +64,6 @@ export default class ProcessedTransactions extends LightningElement {
     loadMoreData(event) {
         if (this.isLoading) return;
         
-        // CAPTURE TARGET SYNCHRONOUSLY
         const dataTable = event ? event.target : null;
         
         this.isLoading = true;
@@ -87,7 +86,6 @@ export default class ProcessedTransactions extends LightningElement {
             this.currentPage++;
             this.isLoading = false;
             
-            // USE CAPTURED TARGET TO TURN OFF SPINNER
             if (dataTable) { dataTable.isLoading = false; }
         })
         .catch(error => {
