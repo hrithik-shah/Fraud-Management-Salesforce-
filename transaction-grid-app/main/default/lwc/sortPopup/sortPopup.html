@@ -1,0 +1,50 @@
+<template>
+    <section class="custom-popover slds-popover slds-popover_prompt" role="dialog">
+        <header class="slds-popover__header slds-grid slds-grid_align-spread slds-grid_vertical-align-center">
+            <h2 class="slds-text-heading_small"><strong>Sort</strong></h2>
+            <button class="icon-btn close-popover-btn" onclick={handleClose} title="Close">
+                <lightning-icon icon-name="utility:close" size="small"></lightning-icon>
+            </button>
+        </header>
+        
+        <div class="slds-popover__body sort-popover-body">
+            <template if:false={hasDraftSorts}>
+                <div class="slds-p-around_small slds-text-align_center slds-text-color_weak">No sorts applied.</div>
+            </template>
+            
+            <template for:each={draftSorts} for:item="sort" for:index="index">
+                <div key={sort.id} class="sort-row">
+                    <div class="sort-label">{sort.prefixLabel}</div>
+                    <div class="sort-combo-wrapper">
+                        <lightning-combobox 
+                            variant="label-hidden" 
+                            value={sort.fieldName} 
+                            placeholder="Select an Option"
+                            options={sortableColumns} 
+                            data-index={index}
+                            dropdown-alignment="auto"
+                            onchange={handleDraftSortFieldChange}>
+                        </lightning-combobox>
+                    </div>
+                    <button class="icon-btn action-btn" data-index={index} onclick={handleDraftSortDirectionToggle}>
+                        <lightning-icon icon-name={sort.icon} size="x-small"></lightning-icon>
+                    </button>
+                    <button class="icon-btn remove-row-btn" data-index={index} onclick={handleRemoveDraftSort}>
+                        <lightning-icon icon-name="utility:close" size="x-small"></lightning-icon>
+                    </button>
+                </div>
+            </template>
+            
+            <div class="slds-m-top_medium slds-m-bottom_small">
+                <button class="add-sort-btn" onclick={handleAddDraftSort}>
+                    <lightning-icon icon-name="utility:add" size="x-small"></lightning-icon> Add Sort
+                </button>
+            </div>
+        </div>
+        
+        <footer class="slds-popover__footer slds-grid slds-grid_align-spread slds-grid_vertical-align-center">
+            <button class="reset-all-btn" onclick={resetAllSorts}>Clear all</button>
+            <button class="apply-btn" onclick={applySorts}>Apply</button>
+        </footer>
+    </section>
+</template>

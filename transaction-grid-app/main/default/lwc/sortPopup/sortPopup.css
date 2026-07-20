@@ -1,0 +1,119 @@
+.custom-popover {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    width: 380px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+}
+
+.slds-popover__header {
+    background-color: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
+    border-radius: 12px 12px 0 0;
+    padding: 1rem;
+}
+
+.close-popover-btn { color: #475569; }
+.close-popover-btn:hover { color: #0f172a; }
+
+.slds-popover__footer {
+    background-color: #ffffff;
+    border-top: 1px solid #e2e8f0;
+    border-radius: 0 0 12px 12px;
+    padding: 1rem;
+}
+
+.reset-all-btn {
+    background-color: #f1f5f9;
+    border: none;
+    color: #475569;
+    border-radius: 6px;
+    padding: 0 16px;
+    height: 36px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.apply-btn {
+    background-color: #8b5cf6;
+    border: none;
+    color: #ffffff;
+    border-radius: 6px;
+    padding: 0 24px;
+    height: 36px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+.apply-btn:hover { background-color: #7c3aed; }
+
+/* Sort Popover Specific Styles */
+.sort-popover-body {
+    padding: 0;
+    overflow: visible; 
+}
+
+.sort-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 1rem;
+    margin-top: 1rem;
+}
+
+.sort-label {
+    width: 60px;
+    color: #64748b;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+}
+
+.sort-combo-wrapper { flex: 1; }
+.sort-combo-wrapper lightning-combobox { width: 100%; }
+
+.icon-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 32px;
+    width: 32px;
+}
+
+.action-btn {
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    color: #475569;
+}
+.action-btn:hover { background: #f8fafc; }
+
+.remove-row-btn { color: #64748b; }
+.remove-row-btn:hover { color: #1e293b; }
+
+.add-sort-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background-color: #f1f5f9;
+    border: 2px solid #0f172a; 
+    color: #0f172a;
+    font-weight: 600;
+    font-size: 0.9rem;
+    border-radius: 6px;
+    padding: 0 16px;
+    height: 36px;
+    cursor: pointer;
+    margin-left: 1rem;
+}
+.add-sort-btn lightning-icon {
+    --sds-c-icon-color-foreground-default: #0f172a;
+}

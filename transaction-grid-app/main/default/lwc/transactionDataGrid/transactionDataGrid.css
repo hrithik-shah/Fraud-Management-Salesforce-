@@ -1,0 +1,100 @@
+.dribbble-card {
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e2e8f0;
+    overflow: visible; 
+    font-family: 'Salesforce Sans', system-ui, sans-serif;
+}
+
+.header-section {
+    background-color: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.header-section h2 {
+    font-size: 1.25rem;
+    color: #1e293b;
+}
+
+.action-buttons lightning-button {
+    --sds-c-button-radius-border: 8px;
+}
+
+.dribbble-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 0 16px;
+    height: 36px;
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    color: #475569;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.dribbble-btn:hover {
+    background-color: #f8fafc;
+    border-color: #cbd5e1;
+}
+
+.dribbble-btn.active-btn {
+    background-color: #f5f3ff;
+    border-color: #8b5cf6;
+    color: #6d28d9;
+}
+
+.dribbble-btn.active-btn lightning-icon {
+    --sds-c-icon-color-foreground-default: #6d28d9;
+}
+
+.active-filters-section {
+    background-color: #fafbfc;
+}
+
+.filter-tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.filter-tags-container lightning-pill {
+    --sds-c-pill-color-background: #ffffff;
+    --sds-c-pill-radius-border: 100px; 
+    --sds-c-pill-text-color: #1b1b1b; 
+    --sds-c-pill-color-border: #b0adab; 
+    font-weight: 400;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+    font-size: 0.75rem; 
+}
+
+.filter-tags-container lightning-pill.sort-pill {
+    --sds-c-pill-color-background: #f1f5f9;
+    --sds-c-pill-color-border: #e2e8f0;
+}
+
+.table-container {
+    border-top: 1px solid #e2e8f0;
+}
+
+.table-container lightning-datatable {
+    --lwc-tableColorBackgroundHeader: #ffffff;
+    --lwc-colorBorder: #e2e8f0;
+    --lwc-spacingXSmall: 0.75rem; 
+}
+
+.footer-section {
+    background-color: #ffffff;
+    color: #64748b;
+    border-top: 1px solid #e2e8f0;
+}
+
+.page-size-selector {
+    width: 80px;
+    --sds-c-input-radius-border: 6px;
+    margin-top: 12px;
+}

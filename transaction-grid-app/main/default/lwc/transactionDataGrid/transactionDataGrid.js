@@ -49,11 +49,11 @@ export default class TransactionDataGrid extends LightningElement {
 
     @track isFilterPopupOpen = false;
     @track isSortPopupOpen = false;
-    @track openDropdownName = ''; 
-    
-    @track activeSorts = []; 
-    @track draftSorts = [];
+    isModalOpen = false; 
+    @track selectedRecord = null;
 
+    @track activeSorts = []; 
+    
     @track filters = { 
         Status__c: ['Pending'], 
         Transaction_ID__c: [], 
@@ -63,13 +63,13 @@ export default class TransactionDataGrid extends LightningElement {
         minAmount: null, maxAmount: null, 
         minDate: null, maxDate: null 
     }; 
-    @track draftFilters = { ...this.filters };
-    @track dropdownSearchTerms = { Status__c: '', Transaction_ID__c: '', Product_Code__c: '', Customer_ID__c: '', Store_Location__c: '' };
-
-    allTxnIdOptions = []; allProductOptions = []; allCustomerOptions = []; allStoreOptions = [];
-
-    isModalOpen = false; 
-    @track selectedRecord = null;
+    
+    @track allFilterOptions = {
+        allTxnIdOptions: [],
+        allProductOptions: [],
+        allCustomerOptions: [],
+        allStoreOptions: []
+    };
 
     @wire(MessageContext) messageContext;
 
@@ -80,7 +80,6 @@ export default class TransactionDataGrid extends LightningElement {
     }
 
     get isBulkDisabled() { return this.currentPageSelectedRows.length === 0; }
-    
     get pageSizeStr() { return this.pageSize.toString(); }
     get totalPages() { return Math.ceil(this.totalRecords / this.pageSize) || 1; }
     get isFirstPage() { return this.currentPage === 1; }
@@ -91,46 +90,6 @@ export default class TransactionDataGrid extends LightningElement {
     get filterButtonClass() { return this.isFilterPopupOpen || this.activeFilterTags.length > 0 ? 'dribbble-btn active-btn' : 'dribbble-btn'; }
     get sortButtonClass() { return this.isSortPopupOpen || this.activeSorts.length > 0 ? 'dribbble-btn active-btn' : 'dribbble-btn'; }
     get hasActiveFiltersOrSorts() { return this.activeFilterTags.length > 0 || this.activeSorts.length > 0; }
-    get hasDraftSorts() { return this.draftSorts.length > 0; }
-
-    get statusDropdownClass() { return `slds-combobox slds-dropdown-trigger slds-dropdown-trigger_click ${this.openDropdownName === 'Status__c' ? 'slds-is-open' : ''}`; }
-    get txnIdDropdownClass() { return `slds-combobox slds-dropdown-trigger slds-dropdown-trigger_click ${this.openDropdownName === 'Transaction_ID__c' ? 'slds-is-open' : ''}`; }
-    get productDropdownClass() { return `slds-combobox slds-dropdown-trigger slds-dropdown-trigger_click ${this.openDropdownName === 'Product_Code__c' ? 'slds-is-open' : ''}`; }
-    get customerDropdownClass() { return `slds-combobox slds-dropdown-trigger slds-dropdown-trigger_click ${this.openDropdownName === 'Customer_ID__c' ? 'slds-is-open' : ''}`; }
-    get storeDropdownClass() { return `slds-combobox slds-dropdown-trigger slds-dropdown-trigger_click ${this.openDropdownName === 'Store_Location__c' ? 'slds-is-open' : ''}`; }
-
-    get statusInputValue() { return this.openDropdownName === 'Status__c' ? this.dropdownSearchTerms.Status__c : this.getDisplayText('Status__c'); }
-    get txnIdInputValue() { return this.openDropdownName === 'Transaction_ID__c' ? this.dropdownSearchTerms.Transaction_ID__c : this.getDisplayText('Transaction_ID__c'); }
-    get productInputValue() { return this.openDropdownName === 'Product_Code__c' ? this.dropdownSearchTerms.Product_Code__c : this.getDisplayText('Product_Code__c'); }
-    get customerInputValue() { return this.openDropdownName === 'Customer_ID__c' ? this.dropdownSearchTerms.Customer_ID__c : this.getDisplayText('Customer_ID__c'); }
-    get storeInputValue() { return this.openDropdownName === 'Store_Location__c' ? this.dropdownSearchTerms.Store_Location__c : this.getDisplayText('Store_Location__c'); }
-
-    getDisplayText(field) {
-        const arr = this.draftFilters[field] || [];
-        if (arr.length === 0) return '';
-        if (arr.length <= 2) return arr.join(', ');
-        return `${arr.length} selected`;
-    }
-
-    filterAndMapOptions(optionsArray, fieldName) {
-        let opts = optionsArray;
-        const term = (this.dropdownSearchTerms[fieldName] || '').toLowerCase();
-        if (term) opts = opts.filter(o => (o.label ? o.label.toLowerCase() : o.toLowerCase()).includes(term));
-        return opts.map(opt => {
-            const val = opt.value || opt;
-            const lbl = opt.label || opt;
-            return { label: lbl, value: val, isChecked: this.draftFilters[fieldName].includes(val) };
-        });
-    }
-
-    get statusOptionsMapped() {
-        const rawOpts = [{ label: 'Pending', value: 'Pending' }, { label: 'Approved', value: 'Approved' }, { label: 'Cancelled', value: 'Cancelled' }, { label: 'Fraudulent', value: 'Fraudulent' }];
-        return this.filterAndMapOptions(rawOpts, 'Status__c');
-    }
-    get txnIdOptionsMapped() { return this.filterAndMapOptions(this.allTxnIdOptions, 'Transaction_ID__c'); }
-    get productOptionsMapped() { return this.filterAndMapOptions(this.allProductOptions, 'Product_Code__c'); }
-    get customerOptionsMapped() { return this.filterAndMapOptions(this.allCustomerOptions, 'Customer_ID__c'); }
-    get storeOptionsMapped() { return this.filterAndMapOptions(this.allStoreOptions, 'Store_Location__c'); }
 
     get activeFilterTags() {
         let tags = [];
@@ -164,10 +123,12 @@ export default class TransactionDataGrid extends LightningElement {
     @wire(getFilterOptions)
     wiredFilterOptions({ error, data }) {
         if (data) {
-            this.allTxnIdOptions = data.Transaction_ID__c || [];
-            this.allProductOptions = data.Product_Code__c || [];
-            this.allCustomerOptions = data.Customer_ID__c || [];
-            this.allStoreOptions = data.Store_Location__c || [];
+            this.allFilterOptions = {
+                allTxnIdOptions: data.Transaction_ID__c || [],
+                allProductOptions: data.Product_Code__c || [],
+                allCustomerOptions: data.Customer_ID__c || [],
+                allStoreOptions: data.Store_Location__c || []
+            };
         } else if (error) {
             this.dispatchEvent(new ShowToastEvent({ title: 'Error loading filters', message: error.body?.message || error.message, variant: 'error' }));
         }
@@ -187,7 +148,6 @@ export default class TransactionDataGrid extends LightningElement {
             }));
             
             this.globalSelectedRows = [...this.globalSelectedRows];
-
         } else if (result.error) {
             this.dispatchEvent(new ShowToastEvent({ title: 'Error', message: result.error.body?.message || result.error.message, variant: 'error' }));
         }
@@ -195,142 +155,28 @@ export default class TransactionDataGrid extends LightningElement {
 
     toggleSortPopup() {
         this.isSortPopupOpen = !this.isSortPopupOpen;
-        if (this.isSortPopupOpen) {
-            this.isFilterPopupOpen = false;
-            this.draftSorts = this.activeSorts.map(s => ({...s}));
-            if (this.draftSorts.length === 0) {
-                this.handleAddDraftSort(); 
-            } else {
-                this.updateSortLabels();
-            }
-        }
+        if (this.isSortPopupOpen) this.isFilterPopupOpen = false;
     }
 
-    handleAddDraftSort() {
-        this.draftSorts.push({
-            id: Date.now() + Math.random(), 
-            fieldName: '',
-            label: '',
-            direction: 'asc',
-            icon: 'utility:arrowup',
-            prefixLabel: ''
-        });
-        this.updateSortLabels();
+    toggleFilterPopup() {
+        this.isFilterPopupOpen = !this.isFilterPopupOpen;
+        if (this.isFilterPopupOpen) this.isSortPopupOpen = false;
     }
 
-    updateSortLabels() {
-        this.draftSorts.forEach((sort, index) => {
-            sort.prefixLabel = index === 0 ? 'Sort by' : 'Then by';
-        });
-        this.draftSorts = [...this.draftSorts];
+    closeModal() { 
+        this.isModalOpen = false; 
+        this.selectedRecord = null; 
     }
 
-    handleDraftSortFieldChange(event) {
-        const index = event.target.dataset.index;
-        const val = event.detail.value;
-        this.draftSorts[index].fieldName = val;
-        const column = this.columns.find(c => c.fieldName === val);
-        this.draftSorts[index].label = column ? `Sort: ${column.label}` : '';
-        this.draftSorts = [...this.draftSorts];
-    }
-
-    handleDraftSortDirectionToggle(event) {
-        const index = event.currentTarget.dataset.index;
-        const currentDir = this.draftSorts[index].direction;
-        this.draftSorts[index].direction = currentDir === 'asc' ? 'desc' : 'asc';
-        this.draftSorts[index].icon = this.draftSorts[index].direction === 'asc' ? 'utility:arrowup' : 'utility:arrowdown';
-        this.draftSorts = [...this.draftSorts];
-    }
-
-    handleRemoveDraftSort(event) {
-        const index = event.currentTarget.dataset.index;
-        this.draftSorts.splice(index, 1);
-        this.updateSortLabels();
-    }
-
-    resetAllSorts() {
-        this.draftSorts = [];
-        this.handleAddDraftSort();
-    }
-
-    applySorts() {
-        this.activeSorts = this.draftSorts.filter(s => s.fieldName); 
+    handleSortApply(event) {
+        this.activeSorts = event.detail.activeSorts;
         this.sortsJSON = JSON.stringify(this.activeSorts);
         this.isSortPopupOpen = false;
         this.currentPage = 1;
     }
 
-    handleRemoveSort(event) { 
-        this.activeSorts.splice(event.target.name, 1); 
-        this.activeSorts = [...this.activeSorts]; 
-        this.sortsJSON = JSON.stringify(this.activeSorts);
-    }
-
-    toggleFilterPopup() {
-        this.isFilterPopupOpen = !this.isFilterPopupOpen;
-        if (this.isFilterPopupOpen) {
-            this.isSortPopupOpen = false; 
-            this.draftFilters = { ...this.filters };
-            this.openDropdownName = ''; 
-            this.clearAllSearchTerms();
-        }
-    }
-
-    handlePopoverClick(event) {
-        if (!event.target.closest('.slds-combobox_container')) this.openDropdownName = '';
-    }
-
-    handleFocusDropdown(event) {
-        const name = event.target.dataset.name;
-        if (this.openDropdownName !== name) {
-            this.openDropdownName = name;
-            this.dropdownSearchTerms[name] = ''; 
-        }
-    }
-
-    handleSearchDropdown(event) {
-        const name = event.target.dataset.name;
-        this.dropdownSearchTerms[name] = event.target.value;
-    }
-
-    toggleDropdown(event) {
-        const dropdownName = event.currentTarget.dataset.name;
-        if (this.openDropdownName === dropdownName) this.openDropdownName = ''; 
-        else { this.openDropdownName = dropdownName; this.dropdownSearchTerms[dropdownName] = ''; }
-    }
-
-    handleMultiSelect(event) {
-        const fieldName = event.target.name;
-        const value = event.target.value;
-        let currentValues = [...this.draftFilters[fieldName]];
-        if (event.target.checked) currentValues.push(value);
-        else currentValues = currentValues.filter(v => v !== value);
-        this.draftFilters = { ...this.draftFilters, [fieldName]: currentValues };
-    }
-
-    handleDraftChange(event) {
-        const { name, value } = event.target;
-        this.draftFilters = { ...this.draftFilters, [name]: value === '' ? null : value };
-    }
-
-    resetSection(event) {
-        const section = event.currentTarget.dataset.section;
-        if (section === 'date') { this.draftFilters.minDate = null; this.draftFilters.maxDate = null; }
-        else if (section === 'amount') { this.draftFilters.minAmount = null; this.draftFilters.maxAmount = null; }
-        else { this.draftFilters[section] = []; this.dropdownSearchTerms[section] = ''; }
-        this.draftFilters = { ...this.draftFilters };
-    }
-
-    clearAllSearchTerms() { this.dropdownSearchTerms = { Status__c: '', Transaction_ID__c: '', Product_Code__c: '', Customer_ID__c: '', Store_Location__c: '' }; }
-    
-    resetAllFilters() {
-        this.draftFilters = { Status__c: [], Transaction_ID__c: [], Product_Code__c: [], Customer_ID__c: [], Store_Location__c: [], minAmount: null, maxAmount: null, minDate: null, maxDate: null };
-        this.openDropdownName = '';
-        this.clearAllSearchTerms();
-    }
-
-    applyFilters() {
-        this.filters = { ...this.draftFilters };
+    handleFilterApply(event) {
+        this.filters = { ...event.detail.filters };
         this.filtersJSON = JSON.stringify(this.filters);
         this.isFilterPopupOpen = false;
         this.currentPage = 1;
@@ -339,9 +185,14 @@ export default class TransactionDataGrid extends LightningElement {
     handleRemoveFilter(event) {
         const fieldName = event.target.name;
         this.filters = { ...this.filters, [fieldName]: (fieldName.includes('Amount') || fieldName.includes('Date')) ? null : [] };
-        this.draftFilters = { ...this.filters };
         this.filtersJSON = JSON.stringify(this.filters);
         this.currentPage = 1;
+    }
+
+    handleRemoveSort(event) { 
+        this.activeSorts.splice(event.target.name, 1); 
+        this.activeSorts = [...this.activeSorts]; 
+        this.sortsJSON = JSON.stringify(this.activeSorts);
     }
 
     handlePageSizeChange(event) { 
@@ -358,9 +209,7 @@ export default class TransactionDataGrid extends LightningElement {
     }
 
     handleRowSelection(event) { 
-        if (!event.detail.config) {
-            return;
-        }
+        if (!event.detail.config) return;
 
         const currentPageIds = this.paginatedData.map(row => row.Id);
         const selectedOnPage = event.detail.selectedRows.map(row => row.Id);
@@ -372,9 +221,15 @@ export default class TransactionDataGrid extends LightningElement {
     }
     
     handleRowAction(event) {
-        const action = event.detail.action.name; const row = event.detail.row;
+        const action = event.detail.action.name; 
+        const row = event.detail.row;
+        
         switch (action) {
-            case 'view_details': this.selectedRecord = row; this.isModalOpen = true; publish(this.messageContext, TRANSACTION_SELECTED_CHANNEL, { action: 'select', transactionId: row.Id }); break;
+            case 'view_details': 
+                this.selectedRecord = row; 
+                this.isModalOpen = true; 
+                publish(this.messageContext, TRANSACTION_SELECTED_CHANNEL, { action: 'select', transactionId: row.Id }); 
+                break;
             case 'approve_txn': this.processUpdates([row.Id], 'Approved'); break;
             case 'cancel_txn': this.processUpdates([row.Id], 'Cancelled'); break;
             case 'fraud_txn': this.processUpdates([row.Id], 'Fraudulent'); break;
@@ -399,6 +254,4 @@ export default class TransactionDataGrid extends LightningElement {
             })
             .catch(error => this.dispatchEvent(new ShowToastEvent({ title: 'Error', message: error.body?.message || error.message, variant: 'error' })));
     }
-    
-    closeModal() { this.isModalOpen = false; this.selectedRecord = null; }
 }

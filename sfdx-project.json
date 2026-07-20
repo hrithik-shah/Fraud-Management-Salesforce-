@@ -3,6 +3,9 @@
     {
       "path": "force-app",
       "default": true
+    },
+    {
+      "path": "transaction-grid-app"
     }
   ],
   "name": "FraudManagementPlatform",
