@@ -13,7 +13,7 @@ public with sharing class StolenCardSecurityAction {
 
     public class FlowOutput {
         @InvocableVariable(label='Created Case ID')
-        public Id caseId;
+        public Id createdCaseId;
     }
 
     @InvocableMethod(label='Secure Card & Issue Replacement' description='Locks card, creates a case, and issues a 30-day temporary card.')
@@ -94,7 +94,7 @@ public with sharing class StolenCardSecurityAction {
         for(Integer i = 0; i < requests.size(); i++) {
             FlowOutput res = new FlowOutput();
             if(indexToCaseMap.containsKey(i)) {
-                res.caseId = indexToCaseMap.get(i).Id; 
+                res.createdCaseId = indexToCaseMap.get(i).Id; 
             }
             results.add(res);
         }
