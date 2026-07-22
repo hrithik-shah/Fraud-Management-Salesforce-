@@ -33,7 +33,6 @@ public with sharing class TransactionPaginationController {
             'Store_Location__c' => new List<String>()
         };
 
-        // Extract unique values for filters using AggregateResult
         for (AggregateResult ar : [SELECT Transaction_ID__c FROM Transaction__c WHERE Transaction_ID__c != null GROUP BY Transaction_ID__c LIMIT 1000]) {
             options.get('Transaction_ID__c').add((String)ar.get('Transaction_ID__c'));
         }

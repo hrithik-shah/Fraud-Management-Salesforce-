@@ -11,8 +11,13 @@ public with sharing class StolenCardSecurityAction {
         public String remark;
     }
 
+    public class FlowOutput {
+        @InvocableVariable(label='Created Case ID')
+        public Id caseId;
+    }
+
     @InvocableMethod(label='Secure Card & Issue Replacement' description='Locks card, creates a case, and issues a 30-day temporary card.')
-    public static void processCompromisedCards(List<FlowInput> requests) {
+    public static List<FlowOutput> processCompromisedCards(List<FlowInput> requests) {
         
         List<Card__c> cardsToUpdate = new List<Card__c>();
         List<Case> casesToInsert = new List<Case>();
@@ -33,7 +38,10 @@ public with sharing class StolenCardSecurityAction {
             WHERE Id IN :cardIds
         ]);
         
-        for(FlowInput req : requests) {
+        Map<Integer, Case> indexToCaseMap = new Map<Integer, Case>();
+        
+        for(Integer i = 0; i < requests.size(); i++) {
+            FlowInput req = requests[i];
             Card__c originalCard = cardMap.get(req.cardId);
             if(originalCard == null) continue;
             
@@ -49,6 +57,7 @@ public with sharing class StolenCardSecurityAction {
                 Card__c = originalCard.Id
             );
             casesToInsert.add(newCase);
+            indexToCaseMap.put(i, newCase);
 
             Integer uniqueLast4 = Math.mod(Math.abs(Crypto.getRandomInteger()), 9000) + 1000;
             
@@ -80,5 +89,16 @@ public with sharing class StolenCardSecurityAction {
         if(!casesToInsert.isEmpty()) insert casesToInsert;
         if(!tempCardsToInsert.isEmpty()) insert tempCardsToInsert;
         if(!txnsToUpdate.isEmpty()) update txnsToUpdate;
+        
+        List<FlowOutput> results = new List<FlowOutput>();
+        for(Integer i = 0; i < requests.size(); i++) {
+            FlowOutput res = new FlowOutput();
+            if(indexToCaseMap.containsKey(i)) {
+                res.caseId = indexToCaseMap.get(i).Id; 
+            }
+            results.add(res);
+        }
+        
+        return results;
     }
 }
